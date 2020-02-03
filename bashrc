@@ -46,7 +46,7 @@ do
   if [[ -d "${_RC_DIR}" ]]; then
     while read -r _RC; do
       source "${_RC}"
-    done < <(find "${_RC_DIR}/rc" -type f | sort -n)
+    done < <(find "${_RC_DIR}/rc" -type f 2>/dev/null | sort -n)
     export PATH="${_RC_DIR}/bin:${PATH}"
   fi
 done
