@@ -35,9 +35,9 @@ lustre_quota() {
   done
 
   sudo "${_LOP[@]}" "/lustre/scratch${scratch}" getquota \
-    "${lop_columns[@]/#/-c }" \
-    "${lop_groups[@]/#/-g }" \
-    "${lop_users[@]/#/-u }" \
+    ${lop_columns[@]/#/-c } \
+    ${lop_groups[@]/#/-g } \
+    ${lop_users[@]/#/-u } \
     "${lop_arguments[@]}" \
   | column -t
 }
