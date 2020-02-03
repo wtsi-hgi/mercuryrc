@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readlink -f "${1-$(pwd)}" \
+| awk '
+  BEGIN { RS = "/" }
+
+  NR <= 2 { path = RS $1 }
+  NR >  2 { path = path RS $1 }
+
+  { print path }
+' \
+| xargs -n1 stat -c "%n %U:%G %A" \
+| column -t
