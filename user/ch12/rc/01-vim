@@ -1,0 +1,1 @@
+alias vim="vim -u \"~ch12/.vimrc\" --cmd \"set rtp^=~ch12/.vim\""

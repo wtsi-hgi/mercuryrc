@@ -1,0 +1,17 @@
+export OS_AUTH_URL="https://eta.internal.sanger.ac.uk:13000/v3"
+
+export OS_USER_DOMAIN_NAME="Default"
+export OS_PROJECT_DOMAIN_ID="default"
+
+export OS_PROJECT_ID="4a9207c32f884e188bc3fe8227ebb7a1"
+export OS_PROJECT_NAME="hgi"
+unset OS_TENANT_ID
+unset OS_TENANT_NAME
+
+export OS_USERNAME="mercury"
+export OS_PASSWORD="$(cat /hgi/secrets/openstack-mercury.pw)"
+
+export OS_REGION_NAME="regionOne"
+
+export OS_INTERFACE="public"
+export OS_IDENTITY_API_VERSION="3"

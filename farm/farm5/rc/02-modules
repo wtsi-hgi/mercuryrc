@@ -1,0 +1,3 @@
+export MODULEPATH="/software/modules/ISG:${MODULEPATH}"
+
+module add singularity/3.5.1
