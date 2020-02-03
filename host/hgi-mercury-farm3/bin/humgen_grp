@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+stderr() {
+  local message="$*"
+
+  if [[ -t 2 ]]; then
+    message="\033[0;31m${message}\033[0m"
+  fi
+
+  >&2 echo -e "${message}"
+}
+
+group_search() {
+  # LDAP search string for groups
+  local grp="$1"
+  echo "(&(objectClass=posixGroup)(cn=${grp}))"
+}
+
+ldap_group() {
+  # Get LDAP entry of group
+  local grp="$1"
+  local -a attrs=("${@:2}")
+  ldapsearch -xLLL "$(group_search "${grp}")" "${attrs[@]}"
+}
+
+pretty_print() {
+  # Pretty print a list of uid-cn tuples
+  awk -F": " '$1 == "uid" { uid = $2 }
+              $1 == "cn"  { cn  = $2 }
+              cn && uid   { print cn " (" uid ")"; uid = cn = "" }'
+}
+
+main() {
+  local cmd="$1"
+  local grp="$2"
+
+  # Sanity check arguments
+  case "${cmd}" in
+    "edit" | "member" | "owner")
+      # Check group exists
+      if ! getent group "${grp}" >/dev/null 2>&1; then
+        stderr "No such group \"${grp}\"!"
+        exit 1
+      fi
+
+      # Check mercury is an owner (and exit if we want to edit)
+      if (( !$(ldapsearch -xLLL "(&(owner=uid=mercury,ou=people,dc=sanger,dc=ac,dc=uk)(&(objectClass=posixGroup)(cn=${grp})))" | wc -l) )); then
+        stderr "Not a humgen group (probably); mercury is not an owner of the \"${grp}\" group!"
+        [[ "${cmd}" = "edit" ]] && exit 1
+      fi
+      ;;
+
+    *)
+      stderr "humgen_grp edit|member|owner GROUP_NAME"
+      exit 1
+      ;;
+  esac
+
+  case "${cmd}" in
+    "edit")
+      # Edit LDAP group
+      if ! command -v ldapvi 2>/dev/null; then
+        module add hgi/ldapvi/latest
+      fi
+
+      ldapvi "$(group_search "${grp}")"
+      ;;
+
+    "owner")
+      # Pretty-print owners from LDAP
+      ldap_group "${grp}" owner \
+      | awk -F": " '$1 == "owner" { print $2 }' \
+      | xargs -n1 -I{} ldapsearch -xLLL -s base -b "{}" uid cn \
+      | pretty_print
+      ;;
+
+    "member")
+      # Pretty-print members from LDAP and default groups, with a
+      # warning for those who are not in the LDAP group
+
+      _pretty_print_each_ldap_person() {
+        xargs -n1 -I{} ldapsearch -xLLL -s one -b "ou=people,dc=sanger,dc=ac,dc=uk" "(uid={})" uid cn \
+        | pretty_print \
+        | sort
+      }
+
+      _members_by_default_group() {
+        local grp="$1"
+        local gid="$(getent group "${grp}" | cut -d: -f3)"
+
+        getent passwd \
+        | awk -F: -v GID="${gid}" '$4 == GID { print $1 }' \
+        | _pretty_print_each_ldap_person
+      }
+
+      _members_by_ldap() {
+        local grp="$1"
+
+        ldap_group "${grp}" memberUid \
+        | awk -F: '$1 == "memberUid" { print $2 }' \
+        | _pretty_print_each_ldap_person
+      }
+
+      comm --output-delimiter="|" <(_members_by_ldap "${grp}") <(_members_by_default_group "${grp}") \
+      | awk -F"|" 'BEGIN   { out_of_sync = 0 }
+                   NF == 1 { print $1 }
+                   NF == 2 { out_of_sync = 1; print $2 " *" }
+                   NF == 3 { print $3 }
+                   END     { if (out_of_sync) print "(*) These users are not members of the LDAP group!" }'
+      ;;
+  esac
+}
+
+main "$@"
