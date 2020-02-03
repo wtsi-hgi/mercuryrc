@@ -34,7 +34,9 @@ fi
 declare HGI_FARM="NONE"
 if command -v lsclusters >/dev/null; then
   HGI_FARM="$(lsclusters | awk 'NR == 2 { print $1 }')"
+
   export LSB_DEFAULTGROUP="mercury-grp"
+  export KRB5CCNAME="$(echo ~mercury/.krb5ccache/credentials)"
 fi
 
 for _RC_DIR in "${_RC_ROOT}/farm/${HGI_FARM}" \

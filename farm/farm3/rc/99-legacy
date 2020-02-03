@@ -1,0 +1,46 @@
+# FIXME This is all legacy stuff that is probably no longer necessary
+
+export PERL_INLINE_DIRECTORY=~/.Inline
+
+OS=$(lsb_release -cs)
+MACH=$(uname -m)
+OSMACH=${OS}-${MACH}
+LOCALDIR=${HOME}/local-${OSMACH}
+
+export PATH=/software/perl-5.18.1/bin:$LOCALDIR/bin:$PATH
+export PKG_CONFIG_PATH=$LOCALDIR/lib/pkgconfig:$PKG_CONFIG_PATH
+export LD_LIBRARY_PATH=/software/perl-5.18.1/bin:$LOCALDIR/lib:$LD_LIBRARY_PATH
+eval $(perl -I$LOCALDIR/lib/perl5 -Mlocal::lib=$LOCALDIR)
+
+# Override stuff from Perl bin with local if necessary
+export PATH=$HOME/local/bin:$PATH
+
+# Python
+export PYTHONPATH=$LOCALDIR/lib/python2.7/site-packages:$PYTHONPATH
+
+# Tools
+export PICARD=/nfs/users/nfs_m/mercury/src/picard-tools-latest
+export GATK=/nfs/users/nfs_m/mercury/src/GenomeAnalysisTK-2.7
+
+# Required for VRPipe
+export SAMTOOLS=/nfs/users/nfs_m/mercury/src/samtools-0.1.19
+export HTSLIB=/software/hgi/pkglocal/htslib-git-1.2.1-11-ge5a0124
+export CRAMTOOLS=/nfs/users/nfs_m/mercury/local-precise-x86_64/bin/cramtools-2.1.jar
+
+# Warehouse
+export WAREHOUSE_DATABASE="sequencescape_warehouse"
+export WAREHOUSE_HOST="seqw-db.internal.sanger.ac.uk"
+export WAREHOUSE_PORT="3379"
+export WAREHOUSE_USER="warehouse_ro"
+
+# VRTrack
+export VRTRACK_HOST=hgivrp-db
+export VRTRACK_PORT=3400
+export VRTRACK_RO_USER=hgipro
+export VRTRACK_RW_USER=hgiprw
+export VRTRACK_PASSWORD=REDACTED
+
+export GOPATH=$(echo ~/go)
+export ANSIBLE_CONFIG=/nfs/humgen01/teams/hgi/conf/ansible/ansible.cfg
+
+# source $(pwd)/checkouts/git-subrepo/.rc
