@@ -1,0 +1,7 @@
+source /software/hgi/etc/profile.hgi
+
+module add hgi/ldapvi/latest \
+           hgi/hgquota/latest \
+           hgi/teepot/latest \
+           hgi/baton/latest \
+           hgi/jq/latest
