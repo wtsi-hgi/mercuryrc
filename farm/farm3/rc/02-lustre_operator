@@ -49,5 +49,3 @@ alias gq116="lustre_quota 116 -d"
 alias gq117="lustre_quota 117 -d"
 alias gq118="lustre_quota 118 -d"
 # alias gq119="lustre_quota 119 -d"
-
-unset _LOP
