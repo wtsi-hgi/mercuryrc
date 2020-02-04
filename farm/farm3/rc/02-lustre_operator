@@ -3,31 +3,36 @@ alias lop="sudo /software/lustre_operator/bin/lustre_operator /usr/bin/lfs"
 lustre_quota() {
   # Simple wrapper over lustre_operator getquota, for less typing
   local scratch="$1"
-  local -a other_args=("${@:2}")
+  shift
 
-  local -a lop_columns=("type" "name" "size-used" "size-hardlimit" "size-remaining" "inode-used" "inode-hardlimit" "inode-remaining")
   local -a lop_groups
   local -a lop_users
   local -a lop_arguments
+  local -a lop_columns=(
+    "type" "name" "size-used" "size-hardlimit" "size-remaining" "inode-used" "inode-hardlimit" "inode-remaining")
 
-  for arg in "${other_args[@]}"; do
+  while (( $# )); do
+    local arg="$1"
+
     if [[ "${arg:0:1}" = "-" ]]; then
       lop_arguments+=("${arg}")
     else
       if getent group "${arg}" >/dev/null 2>&1; then
-        lop_groups+=("${arg}")
+        lop_groups+=("-g" "${arg}")
       elif id "${arg}" >/dev/null 2>&1; then
-        lop_users+=("${arg}")
+        lop_users+=("-u" "${arg}")
       else
         lop_arguments+=("$arg")
       fi
     fi
+
+    shift
   done
 
   lop "/lustre/scratch${scratch}" getquota \
     ${lop_columns[@]/#/-c } \
-    ${lop_groups[@]/#/-g } \
-    ${lop_users[@]/#/-u } \
+    "${lop_groups[@]}" \
+    "${lop_users[@]}" \
     "${lop_arguments[@]}" \
   | column -t
 }
