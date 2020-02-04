@@ -44,15 +44,15 @@ lustre_quota() {
 
 alias lop114="lop /lustre/scratch114"
 alias lop115="lop /lustre/scratch115"
-alias lop116="lop /lustre/scratch116"
-alias lop117="lop /lustre/scratch117"
-alias lop118="lop /lustre/scratch118"
+# alias lop116="lop /lustre/scratch116"
+# alias lop117="lop /lustre/scratch117"
+# alias lop118="lop /lustre/scratch118"
 # alias lop119="lop /lustre/scratch119"
 
 # Convenient aliases with IEC quantification
 alias gq114="lustre_quota 114 -h"
 alias gq115="lustre_quota 115 -h"
-alias gq116="lustre_quota 116 -h"
-alias gq117="lustre_quota 117 -h"
-alias gq118="lustre_quota 118 -h"
+# alias gq116="lustre_quota 116 -h"
+# alias gq117="lustre_quota 117 -h"
+# alias gq118="lustre_quota 118 -h"
 # alias gq119="lustre_quota 119 -h"
