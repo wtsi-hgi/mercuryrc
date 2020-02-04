@@ -8,8 +8,6 @@ lustre_quota() {
   local -a lop_groups
   local -a lop_users
   local -a lop_arguments
-  local -a lop_columns=(
-    "type" "name" "size-used" "size-hardlimit" "size-remaining" "inode-used" "inode-hardlimit" "inode-remaining")
 
   while (( $# )); do
     local arg="$1"
@@ -30,12 +28,26 @@ lustre_quota() {
   done
 
   lop "/lustre/scratch${scratch}" getquota \
-    ${lop_columns[@]/#/-c } \
+    -c "type" \
+    -c "name" \
+    -c "size-used" \
+    -c "size-hardlimit" \
+    -c "size-remaining" \
+    -c "inode-used" \
+    -c "inode-hardlimit" \
+    -c "inode-remaining" \
     "${lop_groups[@]}" \
     "${lop_users[@]}" \
     "${lop_arguments[@]}" \
   | column -t
 }
+
+alias lop114="lop /lustre/scratch114"
+alias lop115="lop /lustre/scratch115"
+alias lop116="lop /lustre/scratch116"
+alias lop117="lop /lustre/scratch117"
+alias lop118="lop /lustre/scratch118"
+# alias lop119="lop /lustre/scratch119"
 
 # Convenient aliases with IEC quantification
 alias gq114="lustre_quota 114 -h"
@@ -44,10 +56,3 @@ alias gq116="lustre_quota 116 -h"
 alias gq117="lustre_quota 117 -h"
 alias gq118="lustre_quota 118 -h"
 # alias gq119="lustre_quota 119 -h"
-
-alias lop114="lop /lustre/scratch114"
-alias lop115="lop /lustre/scratch115"
-alias lop116="lop /lustre/scratch116"
-alias lop117="lop /lustre/scratch117"
-alias lop118="lop /lustre/scratch118"
-# alias lop119="lop /lustre/scratch119"
