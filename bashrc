@@ -21,39 +21,52 @@ export PS1="\u@\h:\w\$ "
 # Editor
 export EDITOR="vim"
 
-# Source user, host and farm-specific RC files
-declare _RC_ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-declare _RC_DIR
-declare _RC
-
+# What user are we?
 declare HGI_USER="NONE"
 if [[ -n "${SUDO_USER}" ]]; then
   HGI_USER="${SUDO_USER}"
 fi
 
+# What farm are we on?
 declare HGI_FARM="NONE"
 if command -v lsclusters >/dev/null; then
   HGI_FARM="$(lsclusters | awk 'NR == 2 { print $1 }')"
 
+  # Default farm environment variables
   export LSB_DEFAULTGROUP="mercury-grp"
   export KRB5CCNAME="$(echo ~mercury/.krb5ccache/credentials)"
 fi
 
-for _RC_DIR in "${_RC_ROOT}/farm/${HGI_FARM}" \
-             "${_RC_ROOT}/host/${HOSTNAME}" \
-             "${_RC_ROOT}/user/${HGI_USER}"
-do
-  if [[ -d "${_RC_DIR}" ]]; then
-    while read -r _RC; do
-      source "${_RC}"
-    done < <(find "${_RC_DIR}/rc" -type f 2>/dev/null | sort -n)
-    export PATH="${_RC_DIR}/bin:${PATH}"
-  fi
-done
+# Where is the universal .bashrc?
+export HGI_RC="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-unset _RC
+# Source user, host and farm-specific RC files
+_hgi_source() {
+  local directory="$1"
+  [[ -d "${directory}" ]] || return
+
+  # Source
+  local _rc
+  while read -r _rc; do
+    source "${_rc}"
+  done < <(find "${directory}/rc" -type f 2>/dev/null | sort -n)
+
+  # Prepend to PATH
+  [[ -d "${directory}/bin" ]] && export PATH="${directory}/bin:${PATH}"
+}
+
+declare _RC_DIR
+for _RC_DIR in \
+  "${HGI_RC}/farm/${HGI_FARM}" \
+  "${HGI_RC}/host/${HOSTNAME}" \
+  "${HGI_RC}/user/${HGI_USER}"
+do _hgi_source "${_RC_DIR}"; done
 unset _RC_DIR
-unset _RC_ROOT
+
+hgi_user() {
+  local user="$1"
+  _hgi_source "${HGI_RC}/user/${user}"
+}
 
 export HGI_USER
 export HGI_FARM
