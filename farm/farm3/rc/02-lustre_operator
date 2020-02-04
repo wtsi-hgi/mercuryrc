@@ -1,14 +1,4 @@
-declare -a _LOP=(
-  "/software/lustre_operator/bin/lustre_operator"
-  "/usr/bin/lfs"
-)
-
-alias lop114="${_LOP[*]} /lustre/scratch114"
-alias lop115="${_LOP[*]} /lustre/scratch115"
-alias lop116="${_LOP[*]} /lustre/scratch116"
-alias lop117="${_LOP[*]} /lustre/scratch117"
-alias lop118="${_LOP[*]} /lustre/scratch118"
-# alias lop119="${_LOP[*]} /lustre/scratch119"
+alias lop="sudo /software/lustre_operator/bin/lustre_operator /usr/bin/lfs"
 
 lustre_quota() {
   # Simple wrapper over lustre_operator getquota, for less typing
@@ -34,7 +24,7 @@ lustre_quota() {
     fi
   done
 
-  sudo "${_LOP[@]}" "/lustre/scratch${scratch}" getquota \
+  lop "/lustre/scratch${scratch}" getquota \
     ${lop_columns[@]/#/-c } \
     ${lop_groups[@]/#/-g } \
     ${lop_users[@]/#/-u } \
@@ -42,10 +32,17 @@ lustre_quota() {
   | column -t
 }
 
-# Convenient aliases with base-1000 quantification
-alias gq114="lustre_quota 114 -d"
-alias gq115="lustre_quota 115 -d"
-alias gq116="lustre_quota 116 -d"
-alias gq117="lustre_quota 117 -d"
-alias gq118="lustre_quota 118 -d"
-# alias gq119="lustre_quota 119 -d"
+# Convenient aliases with IEC quantification
+alias gq114="lustre_quota 114 -h"
+alias gq115="lustre_quota 115 -h"
+alias gq116="lustre_quota 116 -h"
+alias gq117="lustre_quota 117 -h"
+alias gq118="lustre_quota 118 -h"
+# alias gq119="lustre_quota 119 -h"
+
+alias lop114="lop /lustre/scratch114"
+alias lop115="lop /lustre/scratch115"
+alias lop116="lop /lustre/scratch116"
+alias lop117="lop /lustre/scratch117"
+alias lop118="lop /lustre/scratch118"
+# alias lop119="lop /lustre/scratch119"
