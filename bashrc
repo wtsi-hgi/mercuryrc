@@ -27,6 +27,8 @@ if [[ -n "${SUDO_USER}" ]]; then
   HGI_USER="${SUDO_USER}"
 fi
 
+export HGI_USER
+
 # What farm are we on?
 declare HGI_FARM="NONE"
 if command -v lsclusters >/dev/null; then
@@ -36,6 +38,8 @@ if command -v lsclusters >/dev/null; then
   export LSB_DEFAULTGROUP="mercury-grp"
   export KRB5CCNAME="$(echo ~mercury/.krb5ccache/credentials)"
 fi
+
+export HGI_FARM
 
 # Where is the universal .bashrc?
 export HGI_RC="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
@@ -55,6 +59,12 @@ _hgi_source() {
   [[ -d "${directory}/bin" ]] && export PATH="${directory}/bin:${PATH}"
 }
 
+# Convenience function for sourcing user scripts
+hgi-user() {
+  local user="$1"
+  _hgi_source "${HGI_RC}/user/${user}"
+}
+
 declare _RC_DIR
 for _RC_DIR in \
   "${HGI_RC}/farm/${HGI_FARM}" \
@@ -62,11 +72,3 @@ for _RC_DIR in \
   "${HGI_RC}/user/${HGI_USER}"
 do _hgi_source "${_RC_DIR}"; done
 unset _RC_DIR
-
-hgi-user() {
-  local user="$1"
-  _hgi_source "${HGI_RC}/user/${user}"
-}
-
-export HGI_USER
-export HGI_FARM
