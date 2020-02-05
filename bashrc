@@ -8,12 +8,10 @@ export HISTCONTROL=ignoredups:erasedups
 shopt -s histappend
 
 # Proxying
-declare _PROXY="wwwcache.sanger.ac.uk:3128"
-export http_proxy="http://${_PROXY}"
+export http_proxy="http://wwwcache.sanger.ac.uk:3128"
 export HTTP_PROXY="${http_proxy}"
-export https_proxy="https://${_PROXY}"
-export HTTPS_PROXY="${https_proxy}"
-unset _PROXY
+export https_proxy="${http_proxy}"
+export HTTPS_PROXY="${http_proxy}"
 
 # Prompt
 export PS1="\u@\h:\w\$ "
