@@ -1,0 +1,1 @@
+alias tmux="tmux -L ch12 -f \"${HGI_RC}/user/ch12/etc/.tmux.conf\""
