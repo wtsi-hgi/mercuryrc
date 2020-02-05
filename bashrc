@@ -63,7 +63,7 @@ for _RC_DIR in \
 do _hgi_source "${_RC_DIR}"; done
 unset _RC_DIR
 
-hgi_user() {
+hgi-user() {
   local user="$1"
   _hgi_source "${HGI_RC}/user/${user}"
 }

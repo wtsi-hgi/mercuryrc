@@ -16,7 +16,7 @@ order.
 
 **Note** If you log in directly as `mercury` (i.e., without `sudo`'ing),
 then your user scripts won't be sourced. This can be done manually by
-running `hgi_user ${USERNAME}`.
+running `hgi-user ${USERNAME}`.
 
 The following environment variables will be available upon completion:
 
