@@ -19,6 +19,9 @@ export PS1="\u@\h:\w\$ "
 # Editor
 export EDITOR="vim"
 
+# Aliases
+alias sort="LC_ALL=C sort"
+
 # What user are we?
 declare HGI_USER="NONE"
 if [[ -n "${SUDO_USER}" ]]; then
