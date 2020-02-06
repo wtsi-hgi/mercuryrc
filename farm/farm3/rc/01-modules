@@ -1,6 +1,8 @@
 source /software/hgi/etc/profile.hgi
 
-module add hgi/hgquota/latest \
+module add hgi/libevent/latest \
+           hgi/tmux/latest \
+           hgi/hgquota/latest \
            hgi/teepot/latest \
            hgi/baton/latest \
            hgi/jq/latest
