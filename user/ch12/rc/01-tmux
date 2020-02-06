@@ -1,7 +1,6 @@
 alias tmux="tmux -L ch12 -f \"${HGI_RC}/user/ch12/etc/.tmux.conf\""
 
-# FIXME Below gives 'open terminal failed: not a terminal'??
-# if [[ -z "${TMUX}" ]]; then
-#   export SUDO_USER=ch12
-#   exec tmux -2 new-session -s ch12 -A
-# fi
+if [[ -z "${TMUX}" ]]; then
+  export SUDO_USER=ch12
+  exec tmux -2 new-session -s ch12 -A
+fi
