@@ -3,3 +3,13 @@
 
 # Use the right socket, if we need to control tmux
 alias tmux="tmux -L ch12"
+
+# Detach from the last tmux pane, rather than disconnecting
+_exit() {
+  local -i panes="$(tmux list-panes -a | wc -l)"
+  (( panes > 1 )) && builtin exit "$@"
+  tmux detach-client
+}
+
+alias exit=_exit
+alias EXIT="builtin exit"
