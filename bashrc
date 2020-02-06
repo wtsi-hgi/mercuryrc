@@ -23,12 +23,7 @@ export EDITOR="vim"
 alias sort="LC_ALL=C sort"
 
 # What user are we?
-declare HGI_USER="NONE"
-if [[ -n "${SUDO_USER}" ]]; then
-  HGI_USER="${SUDO_USER}"
-fi
-
-export HGI_USER
+export HGI_USER="${SUDO_USER-${LC_HGI_USER-NONE}}"
 
 # What farm are we on?
 declare HGI_FARM="NONE"
