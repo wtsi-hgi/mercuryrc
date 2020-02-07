@@ -7,7 +7,7 @@ alias tmux="tmux -L ch12"
 # Detach from the last tmux pane, rather than disconnecting
 _exit() {
   local -i panes="$(tmux list-panes -a | wc -l)"
-  (( panes > 1 )) && builtin exit "$@"
+  (( panes > 1 || SHLVL > 1 )) && builtin exit "$@"
   tmux detach-client
 }
 
