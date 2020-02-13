@@ -31,9 +31,6 @@ The following environment variables will be available upon completion:
 
 ## To Do
 
-- [ ] Install `ldapvi` on `farm5` and port
-      [`humgen_grp`](host/hgi-mercury-farm3/bin/humgen_grp).
-
 - [ ] Install [Lustre Operator](https://github.com/wtsi-hgi/lustre_operator)
       on `farm5` and port its [wrappers](farm/farm3/rc/02-lustre_operator).
 
