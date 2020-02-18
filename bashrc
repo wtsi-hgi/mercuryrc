@@ -45,6 +45,9 @@ _hgi_source() {
   local directory="$1"
   [[ -d "${directory}" ]] || return
 
+  # Prepend to PATH
+  [[ -d "${directory}/bin" ]] && export PATH="${directory}/bin:${PATH}"
+
   # Source
   # n.b., We duplicate stdin to FD 3 and pass that in to the source's
   # stdin; this avoids the blocking of our stdin that read consumes
@@ -54,9 +57,6 @@ _hgi_source() {
     source "${_rc}" <&3
   done < <(find "${directory}/rc" -type f 2>/dev/null | sort -n)
   exec 3<&-
-
-  # Prepend to PATH
-  [[ -d "${directory}/bin" ]] && export PATH="${directory}/bin:${PATH}"
 }
 
 # Convenience function for sourcing user scripts
