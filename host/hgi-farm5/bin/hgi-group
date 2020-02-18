@@ -14,17 +14,22 @@ stderr() {
 commands() {
   # Available commands
   sed -n "/^#@/,/^#@/p" "${BINARY}" \
-  | grep -Po "(?<=^command_).+(?=\(\))"
+  | grep -Po "(?<=^command-).+(?=\(\))"
 }
 
-has_command() {
-  # Check the supplied function exists in this script
-  local command="$1"
-  commands | grep -Fxq "${command}"
+user_commands() {
+  # End-user commands
+  commands | grep -v ^_
+}
+
+contains() {
+  # Check the given line exists in the input
+  local line="$1"
+  grep -Fxq "${line}"
 }
 
 usage() {
-  local commands="$(commands | paste -sd "|" -)"
+  local commands="$(user_commands | paste -sd "|" -)"
   >&2 echo "Usage: ${PROGNAME} [${commands}] GROUP"
   exit 1
 }
@@ -64,7 +69,7 @@ posix_group_id() {
 
 #@ Subcommands #########################################################
 
-command_show() {
+command-show() {
   local group="$1"
 
   _heading() {
@@ -142,8 +147,9 @@ command_show() {
 
   echo
   _heading "Members"
-  _ldap_group_members \
-  | comm --output-delimiter=$'\t' - <(_posix_group_members) \
+  comm --output-delimiter=$'\t' \
+    <(_ldap_group_members) \
+    <(_posix_group_members) \
   | awk '
     BEGIN { FS = OFS = "\t" }
     { print $NF, NF == 2 }
@@ -151,10 +157,10 @@ command_show() {
   | _human_name \
   | _bullet \
   | awk '
-    BEGIN { FS = "\t"; broken = 0 }
-    $2 { $1 = $1 " *"; broken = 1 }
+    BEGIN { FS = "\t" }
+    $2 { $1 = $1 " *"; out_of_sync = 1 }
     { print $1 }
-    END { if (broken) exit 1 }
+    END { if (out_of_sync) exit 1 }
   ' \
   || {
     echo
@@ -162,13 +168,13 @@ command_show() {
   }
 }
 
-command_edit() {
+command-edit() {
   local group="$1"
 
   _group_editable() {
     ldap_entry group "${group}" owner \
     | cut -f2 \
-    | grep -Fxq "uid=mercury,ou=people,dc=sanger,dc=ac,dc=uk"
+    | contains "uid=mercury,ou=people,dc=sanger,dc=ac,dc=uk"
   }
 
   if ! _group_editable "${group}"; then
@@ -179,26 +185,64 @@ command_edit() {
   HOME=/hgi/home/mercury ldapvi "$(ldap_search group "${group}")"
 }
 
+command-_completion() {
+  local fn_name="_${PROGNAME}_completion"
+
+  _commands() {
+    user_commands | paste -sd$'\t' -
+  }
+
+  cat <<-EOF
+	${fn_name}() {
+	  local current="\${COMP_WORDS[\${COMP_CWORD}]}"
+	
+	  case "\${#COMP_WORDS[@]}" in
+	    2)
+	      COMPREPLY=(\$(compgen -gW "$(_commands | tr $'\t' " ")" -- "\${current}"));;
+	
+	    3)
+	      case "\${COMP_WORDS[1]}" in
+	        $(_commands | sed -E 's/\w+/"&"/g;s/\t/ | /g'))
+	          COMPREPLY=(\$(compgen -g -- "\${current}"));;
+	        *) return;;
+	      esac;;
+	
+	    *)
+	      return;;
+	  esac
+	}
+	
+	complete -F "${fn_name}" "${PROGNAME}"
+	EOF
+}
+
 #@ Entrypoint ##########################################################
 
 main() {
+  # There's something deeply unsatisfying about the manual disconnect
+  # between parsing/validating command line arguments, generating
+  # completions and the usage text :P
   local -a args=("$@")
-  local default="$(commands | head -n1)"
+  local default="$(user_commands | head -n1)"
 
-  # Argument parsing
-  (( $# < 2 )) && args=("${default}" "${args[@]}")
-  ! has_command "${args[0]}" || (( ${#args[@]} != 2 )) && usage
+  # We must have some arguments
+  (( ${#args[@]} )) || usage
 
-  local command="command_${args[0]}"
-  local group="${args[1]}"
+  # Prepend default command if none is recognised
+  commands | contains "${args[0]}" || args=("${default}" "${args[@]}")
 
-  # Sanity check
-  if ! posix_group_id "${group}" >/dev/null; then
-    stderr "No such group \"${group}\"!"
-    exit 1
-  fi
+  # Sanity check user commands
+  user_commands | contains "${args[0]}" && {
+    (( ${#args[@]} != 2 )) && usage
 
-  "${command}" "${group}"
+    if ! posix_group_id "${args[1]}" >/dev/null; then
+      stderr "No such group \"${args[1]}\"!"
+      exit 1
+    fi
+  }
+
+  args[0]="command-${args[0]}"
+  "${args[@]}"
 }
 
 main "$@"
