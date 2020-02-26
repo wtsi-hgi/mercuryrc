@@ -14,7 +14,12 @@ export https_proxy="${http_proxy}"
 export HTTPS_PROXY="${http_proxy}"
 
 # Prompt
-export PS1="\u@\h:\w\$ "
+_hgi_group() {
+  local group="$(groups | cut -d" " -f1)"
+  [[ "${group}" = "hgi" ]] || printf ":%s" "${group}"
+}
+
+export PS1='\u$(_hgi_group)@\h:\w\$ '
 
 # Editor
 export EDITOR="vim"
