@@ -1,5 +1,6 @@
 # Start/attach to tmux session
-[[ "${TMUX}" ]] || SUDO_USER=ch12 exec tmux -2 -L ch12 -f "${HGI_RC}/user/ch12/etc/.tmux.conf" new-session -s ch12 -A
+[[ "${TMUX-${LC_HGI_TMUX}}" ]] || SUDO_USER=ch12 exec tmux -2 -L ch12 -f "${HGI_RC}/user/ch12/etc/.tmux.conf" new-session -s ch12 -A
+export LC_HGI_TMUX="${TMUX}"
 
 # Use the right socket, if we need to control tmux
 alias tmux="tmux -L ch12"
