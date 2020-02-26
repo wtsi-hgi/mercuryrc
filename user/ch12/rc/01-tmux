@@ -1,16 +1,24 @@
-# Start/attach to tmux session
-[[ "${TMUX-${LC_HGI_TMUX}}" ]] || SUDO_USER=ch12 exec tmux -2 -L ch12 -f "${HGI_RC}/user/ch12/etc/.tmux.conf" new-session -s ch12 -A
-export LC_HGI_TMUX="${TMUX}"
+if [[ "${TMUX}" ]]; then
+  # Use the right socket, if we need to control tmux
+  alias tmux="tmux -L ch12"
 
-# Use the right socket, if we need to control tmux
-alias tmux="tmux -L ch12"
+  # Detach from the last tmux pane, rather than disconnecting
+  _exit() {
+    local -i panes="$(tmux list-panes -a | wc -l)"
+    (( panes > 1 || SHLVL > 1 )) && builtin exit "$@"
+    tmux detach-client
+  }
 
-# Detach from the last tmux pane, rather than disconnecting
-_exit() {
-  local -i panes="$(tmux list-panes -a | wc -l)"
-  (( panes > 1 || SHLVL > 1 )) && builtin exit "$@"
-  tmux detach-client
-}
+  alias exit=_exit
+  alias EXIT="builtin exit"
 
-alias exit=_exit
-alias EXIT="builtin exit"
+  # Used to prevent nesting in subsequent SSH sessions
+  export LC_CH12_TMUX=1
+
+else
+  # Start/attach to tmux session
+  [[ "${LC_CH12_TMUX}" ]] \
+  || LC_HGI_USER=ch12 \
+     exec tmux -2 -L ch12 -f "${HGI_RC}/user/ch12/etc/.tmux.conf" \
+       new-session -s ch12 -A
+fi
