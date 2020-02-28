@@ -1,4 +1,12 @@
-alias lop="sudo /software/lustre_operator/bin/lustre_operator /usr/bin/lfs"
+declare -a _LOP=(
+  "/software/lustre_operator/bin/lustre_operator"
+  "$(command -v lfs)"
+)
+
+alias _lop="${_LOP[*]}"
+alias _slop="sudo ${_LOP[*]}"
+
+unset _LOP
 
 lustre_quota() {
   # Simple wrapper over lustre_operator getquota, for less typing
@@ -27,7 +35,7 @@ lustre_quota() {
     shift
   done
 
-  lop "/lustre/scratch${scratch}" getquota \
+  _lop "/lustre/scratch${scratch}" getquota \
     -c "type" \
     -c "name" \
     -c "size-used" \
@@ -42,10 +50,10 @@ lustre_quota() {
   | column -t
 }
 
-alias lop114="lop /lustre/scratch114"  # *
-alias lop115="lop /lustre/scratch115"  # *
-alias lop118="lop /lustre/scratch118"  # find, getquota
-alias lop119="lop /lustre/scratch119"  # find, getquota
+alias lop114="_slop /lustre/scratch114"  # *
+alias lop115="_slop /lustre/scratch115"  # *
+alias lop118="_slop /lustre/scratch118"  # find, getquota
+alias lop119="_slop /lustre/scratch119"  # find, getquota
 
 # Convenient aliases with IEC quantification
 alias gq114="lustre_quota 114 -h"
