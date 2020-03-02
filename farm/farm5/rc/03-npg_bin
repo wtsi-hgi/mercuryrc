@@ -1,0 +1,13 @@
+declare _NPG_BIN_DIR="/software/sciops/pkgg"
+declare -a _NPG_BIN=(
+  "samtools/1.10.0/bin"
+  "baton/2.0.1/bin"
+)
+
+export PATH="$(printf "${_NPG_BIN_DIR}/%s:" "${_NPG_BIN[@]}"):${PATH}"
+
+# The baton convenience wrapper is installed separately
+export PATH="/software/hgi/installs/baton:${PATH}"
+
+unset _NPG_BIN
+unset _NPG_BIN_DIR
