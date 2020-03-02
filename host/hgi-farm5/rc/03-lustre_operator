@@ -8,7 +8,7 @@ alias _slop="sudo ${_LOP[*]}"
 
 unset _LOP
 
-lustre_quota() {
+hgi-lustre-quota() {
   # Simple wrapper over lustre_operator getquota, for less typing
   local scratch="$1"
   shift
@@ -50,13 +50,19 @@ lustre_quota() {
   | column -t
 }
 
-alias lop114="_slop /lustre/scratch114"  # *
-alias lop115="_slop /lustre/scratch115"  # *
-alias lop118="_slop /lustre/scratch118"  # find, getquota
-alias lop119="_slop /lustre/scratch119"  # find, getquota
+# Convenient aliases: Get quota, with IEC quantification
+alias gq114="hgi-lustre-quota 114 -h"
+alias gq115="hgi-lustre-quota 115 -h"
+alias gq118="hgi-lustre-quota 118 -h"
+alias gq119="hgi-lustre-quota 119 -h"
 
-# Convenient aliases with IEC quantification
-alias gq114="lustre_quota 114 -h"
-alias gq115="lustre_quota 115 -h"
-alias gq118="lustre_quota 118 -h"
-alias gq119="lustre_quota 119 -h"
+# Convenience aliases: Set quota, where possible
+_no_quota_for_you() {
+  >&2 echo "$(tput setaf 1)E-mail Service Desk to set quotas on this volume!$(tput sgr0)"
+  return 1
+}
+
+alias sq114="_slop /lustre/scratch114 setquota -g"
+alias sq115="_slop /lustre/scratch115 setquota -g"
+alias sq118="_no_quota_for_you"
+alias sq119="_no_quota_for_you"
