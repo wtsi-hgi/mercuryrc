@@ -19,7 +19,7 @@ _hgi_group() {
   [[ "${group}" = "hgi" ]] || printf ":%s" "${group}"
 }
 
-export PS1='\u$(_hgi_group)@\h:\w\$ '
+export PS1='\u$(_hgi_group)@\h \w > '
 
 # Editor
 export EDITOR="vim"
