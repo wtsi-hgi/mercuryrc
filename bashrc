@@ -19,7 +19,26 @@ _hgi_group() {
   [[ "${group}" = "hgi" ]] || printf ":%s" "${group}"
 }
 
-export PS1='\u$(_hgi_group)@\h \w > '
+_hgi_abbreviate_pwd() {
+  local pwd="$1"
+
+  echo "${pwd}" \
+  | awk -v LIMIT="${HGI_ABBREVIATE_LIMIT-2}" '
+    BEGIN { FS = OFS = "/" }
+
+    { fields = NF }
+    $1 == "" { fields-- }
+
+    LIMIT == 0 || fields <= LIMIT { print $0 }
+    LIMIT >  0 && fields >  LIMIT {
+      printf("...")
+      for (i = NF - LIMIT; i < NF; i++)
+        printf("%s%s", OFS, $(i + 1))
+    }
+  '
+}
+
+export PS1='\u$(_hgi_group)@\h $(_hgi_abbreviate_pwd "\w")$ '
 
 # Editor
 export EDITOR="vim"
