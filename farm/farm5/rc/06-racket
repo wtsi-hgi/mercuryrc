@@ -1,0 +1,6 @@
+declare _RACKET_BASE="/software/hgi/installs/racket"
+
+export PATH="${_RACKET_BASE}/bin:${PATH}"
+export MANPATH="${_RACKET_BASE}/man:${MANPATH}"
+
+unset _RACKET_BASE
