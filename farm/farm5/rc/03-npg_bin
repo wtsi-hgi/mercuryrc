@@ -1,7 +1,11 @@
 declare _NPG_BIN_DIR="/software/sciops/pkgg"
 declare -a _NPG_BIN=(
   "samtools/1.10.0/bin"
+  "bcftools/1.10.2/bin"
   "baton/2.0.1/bin"
+
+  # There's a treasure trove of software here.
+  # What else would be useful?...
 )
 
 export PATH="$(printf "${_NPG_BIN_DIR}/%s:" "${_NPG_BIN[@]}"):${PATH}"
