@@ -1,4 +1,4 @@
-#!/usr/bin/env -S awk -f
+#!/usr/bin/gawk -f
 
 # Convert LDIF into JSON
 
