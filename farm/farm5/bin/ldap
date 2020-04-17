@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+ldapsearch -xLLL "$@" | ldif2json | jq .
