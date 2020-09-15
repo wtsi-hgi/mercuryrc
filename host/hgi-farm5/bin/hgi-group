@@ -67,6 +67,19 @@ posix_group_id() {
   getent group "${group}" | cut -d: -f3
 }
 
+group_editable() {
+  local group="$1"
+  ldap_entry group "${group}" owner \
+  | cut -f2 \
+  | contains "uid=mercury,ou=people,dc=sanger,dc=ac,dc=uk"
+}
+
+is_humgen() {
+  local group="${group}"
+  ldap_entry humgen "${group}" \
+  | grep -q .
+}
+
 #@ Subcommands #########################################################
 
 command-show() {
@@ -103,11 +116,6 @@ command-show() {
     done
   }
 
-  _is_humgen() {
-    ldap_entry humgen "${group}" \
-    | grep -q .
-  }
-
   _ldap_group_members() {
     ldap_entry group "${group}" memberUid \
     | cut -f2 \
@@ -125,7 +133,7 @@ command-show() {
     | sort
   }
 
-  if _is_humgen; then
+  if is_humgen "${group}"; then
     _heading "PI"
     ldap_entry group "${group}" sangerProjectPI \
     | cut -f2 \
@@ -168,21 +176,41 @@ command-show() {
   }
 }
 
+command-check() {
+  local group="$1"
+
+  _vivek_strike() {
+    local group="$1"
+    ldap_entry group "${group}" \
+    | cut -f1 \
+    | grep -Eq ":$"
+  }
+
+  if ! group_editable "${group}"; then
+    stderr "Group is not owned by mercury, so cannot be edited"
+  fi
+
+  if _vivek_strike "${group}"; then
+    stderr "Entries contain trailing whitespace; this MUST be corrected"
+  fi
+
+  if ! is_humgen "${group}"; then
+    stderr "Humgen groups must have an object class of sangerHumgenProjectGroup, with its associated attributes"
+  fi
+
+  # TODO Check memberUID and member lists correspond
+}
+
 command-edit() {
   local group="$1"
 
-  _group_editable() {
-    ldap_entry group "${group}" owner \
-    | cut -f2 \
-    | contains "uid=mercury,ou=people,dc=sanger,dc=ac,dc=uk"
-  }
-
-  if ! _group_editable "${group}"; then
+  if ! group_editable "${group}"; then
     stderr "Cannot edit group \"${group}\"!"
     exit 1
   fi
 
   HOME=/hgi/home/mercury ldapvi "$(ldap_search group "${group}")"
+  command-check "${group}"
 }
 
 command-_completion() {
