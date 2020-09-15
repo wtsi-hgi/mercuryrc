@@ -6,7 +6,7 @@ specific (in increasing order of precedence):
 
 * Farm-based scripts go in `farm/${FARM}`;
 * Host-based scripts go in `host/${HOSTNAME}`;
-* User-based scripts got in `user/${USERNAME}`.
+* User-based scripts go in `user/${USERNAME}`.
 
 Within these directories there should be an `rc` directory and a `bin`
 directory. The latter will be prepended to the `PATH`, the former will
@@ -14,7 +14,7 @@ be iterated through and each script therein will be sourced in numerical
 order.
 
 **Note** If you `sudo` as `mercury`, then your user scripts will be
-source automatically. However, if you log in directly as `mercury`
+sourced automatically. However, if you log in directly as `mercury`
 (i.e., without `sudo`'ing), then your user scripts won't be sourced.
 This can be done manually by running `hgi-user ${USERNAME}`, or by
 sending the `LC_HGI_USER` environment variable in your SSH session:
