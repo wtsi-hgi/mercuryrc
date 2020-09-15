@@ -180,25 +180,44 @@ command-check() {
   local group="$1"
 
   _vivek_strike() {
-    local group="$1"
     ldap_entry group "${group}" \
     | cut -f1 \
     | grep -Eq ":$"
+  }
+
+  _mismatched_members() {
+    _members() {
+      ldap_entry group "${group}" member \
+      | cut -f2 \
+      | grep -Po "(?<=uid=).+?(?=,)" \
+      | sort
+    }
+
+    _memberUids() {
+      ldap_entry group "${group}" memberUid \
+      | cut -f2 \
+      | sort
+    }
+
+    comm -3 <(_members) <(_memberUids) \
+    | grep -q .
   }
 
   if ! group_editable "${group}"; then
     stderr "Group is not owned by mercury, so cannot be edited"
   fi
 
-  if _vivek_strike "${group}"; then
-    stderr "Entries contain trailing whitespace; this MUST be corrected"
-  fi
-
   if ! is_humgen "${group}"; then
     stderr "Humgen groups must have an object class of sangerHumgenProjectGroup, with its associated attributes"
   fi
 
-  # TODO Check memberUID and member lists correspond
+  if _vivek_strike; then
+    stderr "Entries contain trailing whitespace; this MUST be corrected"
+  fi
+
+  if _mismatched_members; then
+    stderr "member and memberUid lists do not correspond; this MUST be corrected"
+  fi
 }
 
 command-edit() {
