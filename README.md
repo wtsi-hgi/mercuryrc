@@ -28,8 +28,3 @@ The following environment variables will be available upon completion:
   `LC_HGI_USER`, if applicable (`NONE`, otherwise);
 * `HGI_FARM` is the LSF farm you are currently using, if applicable
   (`NONE`, otherwise).
-
-## To Do
-
-- [ ] Port [mpistat](https://github.com/wtsi-hgi/mpistat) and its
-      associated `cron` job to `farm5`.
