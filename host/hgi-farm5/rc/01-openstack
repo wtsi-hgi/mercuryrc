@@ -1,4 +1,4 @@
-export OS_AUTH_URL="https://eta.internal.sanger.ac.uk:13000/v3"
+export OS_AUTH_URL="https://theta.internal.sanger.ac.uk:5000"
 
 export OS_USER_DOMAIN_NAME="Default"
 export OS_PROJECT_DOMAIN_ID="default"
