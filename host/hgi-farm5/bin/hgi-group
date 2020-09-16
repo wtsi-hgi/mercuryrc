@@ -227,10 +227,31 @@ command-check() {
 
 command-edit() {
   local group="$1"
+  local warning=""
 
   if ! group_editable "${group}"; then
     stderr "Cannot edit group \"${group}\"!"
     exit 1
+  fi
+
+  case "${group}" in
+    "ddd")
+      warning="Access to the DDD project requires a signed data access agreement. Please contact the project group before adding anyone new."
+      ;;
+
+    "pagedata")
+      warning="Access to the PAGE project requires a signed data access agreement. Please contact the project group before adding anyone new."
+      ;;
+
+    "interval"*)
+      warning="The Interval Project is in collaboration with the University of Cambridge. Please contact the RA/PI before adding anyone new."
+      ;;
+  esac
+
+  if [[ "${warning}" ]]; then
+    stderr "${warning}"
+    read -rsn1 -p "Press any key to continue..."
+    echo
   fi
 
   HOME=/hgi/home/mercury ldapvi "$(ldap_search group "${group}")"
