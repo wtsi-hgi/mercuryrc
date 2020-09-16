@@ -180,6 +180,10 @@ command-check() {
   local group="$1"
 
   _vivek_strike() {
+    # When leaving trailing spaces, ldapsearch returns the entry base64
+    # encoded and changes the attribute "delimiter" to a double colon.
+    # Thus any trailing spaces can be detected by looking for attributes
+    # ending with an errant colon.
     ldap_entry group "${group}" \
     | cut -f1 \
     | grep -Eq ":$"
@@ -187,6 +191,7 @@ command-check() {
 
   _mismatched_members() {
     _members() {
+      # The PCRE extracts the POSIX user ID from the DN
       ldap_entry group "${group}" member \
       | cut -f2 \
       | grep -Po "(?<=uid=).+?(?=,)" \
