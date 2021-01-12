@@ -55,6 +55,7 @@ alias gq114="hgi-lustre-quota 114 -h"
 alias gq115="hgi-lustre-quota 115 -h"
 alias gq118="hgi-lustre-quota 118 -h"
 alias gq119="hgi-lustre-quota 119 -h"
+alias gq123="hgi-lustre-quota 123 -h"
 
 # Convenience aliases: Set quota, where possible
 _no_quota_for_you() {
@@ -66,3 +67,4 @@ alias sq114="_slop /lustre/scratch114 setquota -g"
 alias sq115="_slop /lustre/scratch115 setquota -g"
 alias sq118="_no_quota_for_you"
 alias sq119="_no_quota_for_you"
+alias sq123="_no_quota_for_you"
