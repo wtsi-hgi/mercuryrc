@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# Safe rm
+# Christopher Harrison <ch12@sanger.ac.uk>
+
+# TODO
+exec rm "$@"
