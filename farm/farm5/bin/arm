@@ -78,9 +78,6 @@ profile() {
 	# No file clobbering with redirection (-C)
 	set -fuC +B
 	
-	export HGI_ARMED=1
-	export HGI_RM_INTERACTIVE=1
-	
 	export PS1='\n\h:$(realpath "$(pwd)")\n\e[1mARMED\e[0m \D{%-I:%M:%S%P}> '
 	
 	arm() {
