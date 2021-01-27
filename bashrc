@@ -1,6 +1,9 @@
 # Universal Mercury .bashrc
 # Christopher Harrison <ch12@sanger.ac.uk>
 
+# Prevent file clobbering with redirection
+set -C
+
 # History keeping
 export HISTSIZE=50000
 export HISTFILESIZE=50000

@@ -52,16 +52,21 @@ start() {
   script -qc "\"${BINARY}\" _shell" "${log_root}/${log_dir}/transcript"
 
   # Collect up logs and copy to the permanent logging directory
-  cd "${log_root}/${log_dir}"
-  md5sum env transcript > md5sum
-  tar czf "${log_root}/${log_dir}.tar.gz" -C "${log_root}" "${log_dir}"
-  scp "${log_root}/${log_dir}.tar.gz" "${LOG_DIR}/" 1>/dev/null 2>&1
+  # We do this in a background subshell to speed up the return time, for
+  # the user, to the normal shell and help prevent Ctrl+C
+  (
+    trap '' SIGINT
+    cd "${log_root}/${log_dir}"
+    md5sum env transcript > md5sum
+    tar czf "${log_root}/${log_dir}.tar.gz" -C "${log_root}" "${log_dir}"
+    scp "${log_root}/${log_dir}.tar.gz" "${LOG_DIR}/"
+  ) >/dev/null 2>&1 &
 }
 
 shell() {
   # Start the armed shell
   stderr "You are now in the HGI armed environment"
-  stderr "You are logged in as mercury from ${HGI_USER}; this session is being recorded"
+  stderr "You are ${HGI_USER}, logged in as mercury; this session is being recorded"
   exec "${BASH}" --rcfile <("${BINARY}" _profile)
 }
 
