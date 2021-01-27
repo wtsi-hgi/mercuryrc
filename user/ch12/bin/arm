@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+# Armed bash
+# Christopher Harrison <ch12@sanger.ac.uk>
+
+set -euo pipefail
+
+readonly BINARY="$(readlink -f "$0")"
+readonly BASH="/bin/bash"
+
+readonly LOG_DIR="hgi-farm5:/hgi/armed-logs"
+
+stderr() {
+  # Write a message to stderr (in red, if it's a TTY)
+  local message="$*"
+  [[ -t 2 ]] && message="$(tput setaf 1)${message}$(tput sgr0)"
+  >&2 echo "${message}"
+}
+
+out_of_hours() {
+  # Return affirmatively outside of 9am to 4pm
+  local -i hour="$(date "+%H")"
+  if (( hour > 8 )) && (( hour < 16 )); then
+    return 1
+  fi
+}
+
+start() {
+  # Main entrypoint
+  local user="$1"
+  local -i out_of_hours_ok="$2"
+
+  if [[ "${user}" == "NONE" ]]; then
+    stderr "The HGI armed environment cannot establish your real username"
+    stderr "You must either sudo as mercury, or set the LC_HGI_USER environment"
+    stderr "variable in your SSH session"
+    exit 1
+  fi
+
+  if out_of_hours && ! (( out_of_hours_ok )); then
+    stderr "The HGI armed environment cannot be used outside the hours of 9am to 4pm"
+    stderr "You may bypass this restraint using the --yes-i-know-its-late option"
+    exit 1
+  fi
+
+  # Create temporary logging directory
+  local log_root="$(mktemp -d)"
+  local log_dir="$(date -u "+%Y%m%d%H%M%S")-${user}"
+  mkdir -p "${log_root}/${log_dir}"
+
+  env > "${log_root}/${log_dir}/env"
+  script -qc "\"${BINARY}\" _shell" "${log_root}/${log_dir}/transcript"
+
+  # Collect up logs and copy to the permanent logging directory
+  cd "${log_root}/${log_dir}"
+  md5sum env transcript > md5sum
+  tar czf "${log_root}/${log_dir}.tar.gz" -C "${log_root}" "${log_dir}"
+  scp "${log_root}/${log_dir}.tar.gz" "${LOG_DIR}/" 1>/dev/null 2>&1
+}
+
+shell() {
+  # Start the armed shell
+  stderr "You are now in the HGI armed environment"
+  stderr "You are logged in as mercury from ${HGI_USER}; this session is being recorded"
+  exec "${BASH}" --rcfile <("${BINARY}" _profile)
+}
+
+profile() {
+  # Armed environment profile
+  cat <<-'EOF'
+	# No globbing (-f) or brace expansion (+B)
+	# Undefined variables are an error (-u)
+	# No file clobbering with redirection (-C)
+	set -fuC +B
+	
+	export HGI_ARMED=1
+	export HGI_RM_INTERACTIVE=1
+	
+	export PS1='\n\h:$(realpath "$(pwd)")\n\e[1mARMED\e[0m \D{%-I:%M:%S%P}> '
+	
+	arm() {
+	  >&2 echo "You are already in the armed environment"
+	  return 1
+	}
+	EOF
+}
+
+main() {
+  # Command line argument delegation
+  local mode="start"
+  local user="${HGI_USER-NONE}"
+  local -i out_of_hours_ok=0
+
+  while (( $# )); do
+    case "$1" in
+      "--yes-i-know-its-late") out_of_hours_ok=1;;
+      *)                       mode=$1;;
+    esac
+    shift
+  done
+
+  case "${mode}" in
+    "start")
+      start "${user}" "${out_of_hours_ok}";;
+
+    # Non-user commands
+    "_shell")   shell;;
+    "_profile") profile;;
+
+    *)
+      stderr "Unknown arguments"
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
