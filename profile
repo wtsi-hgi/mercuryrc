@@ -1,8 +1,9 @@
 source ~/.bashrc
 
-# Disable rm in interactive sessions
-rm() {
-  >&2 echo "$(tput setaf 1)rm is disabled$(tput sgr0)"
-  >&2 echo "Enter the armed environment, with 'arm' to enable"
-  return 1
-}
+declare _PROFILE
+for _PROFILE in \
+  "${HGI_RC}/farm/${HGI_FARM}" \
+  "${HGI_RC}/host/${HOSTNAME}" \
+  "${HGI_RC}/user/${HGI_USER}"
+do [[ -e "${_PROFILE}/profile" ]] && source "${_PROFILE}/profile"; done
+unset _PROFILE
