@@ -3,6 +3,19 @@
 # Declawed rm
 # Christopher Harrison <ch12@sanger.ac.uk>
 
+readonly RM="/bin/rm"
+
+# Cases
+# * In a normal, interactive environment, the "rm" Bash function will
+#   override this script.
+# * In the armed environment, HGI_ARMED will be set to 1 and thus this
+#   script will run.
+# * In shell scripts, HGI_ARMED will not be set and the "rm" function
+#   won't exist, so this script will run and fallback to the system rm.
+if ! (( ${HGI_ARMED-0} )); then
+  exec "${RM}" "$@"
+fi
+
 set -eu
 
 declare -a OPTIONS=()
@@ -46,6 +59,6 @@ fi
 OPTIONS+=("-Iv" "--")
 
 # Output and execute
-declare -a EXEC=("rm" "${OPTIONS[@]}" "${FILES[@]}")
+declare -a EXEC=("${RM}" "${OPTIONS[@]}" "${FILES[@]}")
 >&2 echo "${EXEC[*]}"
 exec "${EXEC[@]}"

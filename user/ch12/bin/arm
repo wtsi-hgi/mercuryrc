@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Armed bash
+# Armed Bash
 # Christopher Harrison <ch12@sanger.ac.uk>
 
 set -euo pipefail
@@ -8,7 +8,7 @@ set -euo pipefail
 readonly BINARY="$(readlink -f "$0")"
 readonly BASH="/bin/bash"
 
-readonly LOG_DIR="hgi-farm5:/hgi/armed-logs"
+readonly LOG_DIR="hgi-farm5:/hgi/audit"
 
 stderr() {
   # Write a message to stderr (in red, if it's a TTY)
@@ -53,11 +53,11 @@ start() {
 
   # Collect up logs and copy to the permanent logging directory
   # We do this in a background subshell to speed up the return time, for
-  # the user, to the normal shell and help prevent Ctrl+C
+  # the user, to the normal shell and to help prevent Ctrl+C
   (
     trap '' SIGINT
     cd "${log_root}/${log_dir}"
-    md5sum env transcript > md5sum
+    md5sum env transcript > "${log_root}/${log_dir}/md5sum"
     tar czf "${log_root}/${log_dir}.tar.gz" -C "${log_root}" "${log_dir}"
     scp "${log_root}/${log_dir}.tar.gz" "${LOG_DIR}/"
   ) >/dev/null 2>&1 &
@@ -67,6 +67,9 @@ shell() {
   # Start the armed shell
   stderr "You are now in the HGI armed environment"
   stderr "You are ${HGI_USER}, logged in as mercury; this session is being recorded"
+  out_of_hours && stderr "You have opted to perform unsafe actions out-of-hours"
+  echo "For more information, see https://confluence.sanger.ac.uk/display/HGI/Data+Management+Policy" >&2
+
   exec "${BASH}" --rcfile <("${BINARY}" _profile)
 }
 
@@ -78,7 +81,8 @@ profile() {
 	# No file clobbering with redirection (-C)
 	set -fuC +B
 	
-	export PS1='\n\h:$(realpath "$(pwd)")\n\e[1mARMED\e[0m \D{%-I:%M:%S%P}> '
+	export PS1='\n\h:$(pwd)\n\e[1mARMED\e[0m \D{%-I:%M:%S%P}> '
+	export HGI_ARMED=1
 	
 	arm() {
 	  >&2 echo "You are already in the armed environment"
