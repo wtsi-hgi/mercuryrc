@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# Safe(r) xargs
+# Christopher Harrison <ch12@sanger.ac.uk>
+
+readonly XARGS="/usr/bin/xargs"
+
+declare OPTION
+for OPTION in "$@"; do
+  if [[ "${OPTION}" == "rm" ]]; then
+    >&2 echo "$(tput setaf 1)xargs rm is forbidden$(tput sgr0)"
+    exit 1
+  fi
+done
+
+exec "${XARGS}" "$@"
