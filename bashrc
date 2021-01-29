@@ -82,7 +82,7 @@ _hgi_source() {
   exec 3<&0
   while read -r _rc; do
     source "${_rc}" <&3
-  done < <(find "${directory}/rc" -type f 2>/dev/null | sort -n)
+  done < <(find "${directory}/rc" -type f -o -type l 2>/dev/null | sort -n)
   exec 3<&-
 }
 
