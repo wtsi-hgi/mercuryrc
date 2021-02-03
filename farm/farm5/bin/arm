@@ -25,12 +25,24 @@ out_of_hours() {
   fi
 }
 
+is_valid_user() {
+  # Check user is not mercury and is allowed to sudo as mercury
+  local user="$1"
+
+  [[ "${user}" == "mercury" ]] && return 1
+
+  getent group mercury-sudoers \
+  | cut -d: -f4 \
+  | tr "," "\n" \
+  | grep -Fqx "${user}"
+}
+
 start() {
   # Main entrypoint
   local user="$1"
   local -i out_of_hours_ok="$2"
 
-  if [[ "${user}" == "NONE" ]]; then
+  if ! is_valid_user "${user}"; then
     stderr "The HGI armed environment cannot establish your real username"
     stderr "You must either sudo as mercury, or set the LC_HGI_USER environment"
     stderr "variable in your SSH session"
