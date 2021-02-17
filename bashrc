@@ -50,7 +50,8 @@ export EDITOR="vim"
 alias sort="LC_ALL=C sort"
 
 # What user are we?
-export HGI_USER="${SUDO_USER-${LC_HGI_USER-NONE}}"
+readonly HGI_USER="${SUDO_USER-${LC_HGI_USER-NONE}}"
+export HGI_USER
 
 # What farm are we on?
 declare HGI_FARM="NONE"
