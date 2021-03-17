@@ -19,7 +19,7 @@ stderr() {
 
 out_of_hours() {
   # Return affirmatively outside of 9am to 4pm
-  local -i hour="$(date "+%H")"
+  local -i hour="$(date "+%-H")"
   if (( hour > 8 )) && (( hour < 16 )); then
     return 1
   fi
