@@ -1,3 +1,5 @@
 export MODULEPATH="/software/modules/ISG:${MODULEPATH}"
 
-module add singularity/3.5.1
+# Singularity
+module add singularity/3.6.4
+export SINGULARITY_CACHEDIR=/lustre/scratch123/hgi/mdt2/caches/singularity
