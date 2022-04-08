@@ -1,0 +1,27 @@
+function virtualenv_info(){
+    # Get Virtual Env
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        # Strip out the path and just leave the env name
+        venv="${VIRTUAL_ENV##*/}"
+    else
+        # In case you don't have one activated
+        venv=''
+    fi
+    [[ -n "$venv" ]] && echo "($venv) "
+}
+
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+VENV="\$(virtualenv_info)";
+
+PROMPT_COMMAND='RET=$?;\
+  BRANCH="";\
+  ERRMSG="";\
+  if [[ $RET != 0 ]]; then\
+    ERRMSG=" ***ERR:$RET***";\
+  fi;\
+  if git branch &>/dev/null; then\
+    BRANCH=$(git branch 2>/dev/null | grep \* |  cut -d " " -f 2);\
+    BRANCH="[$BRANCH]"
+  fi;
+PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\] \[\e[35m\]${VENV}$BRANCH\[\e[31m\]$ERRMSG\\n\[\033[0;34m\][\!]\[\e[0m\]\\$ ";'
+#PS1="\\$ ";'
