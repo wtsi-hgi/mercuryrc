@@ -1,0 +1,3 @@
+alias ll="/bin/ls --color=auto -Falh"
+alias ptree="ps xjf"
+alias ptreew="ps xjfww"
