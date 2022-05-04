@@ -1,1 +1,1 @@
-export PATH="/nfs/users/nfs_m/mercury/genestack:$PATH"
+export PATH="/software/hgi/installs/genestack/bin:$PATH"
