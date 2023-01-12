@@ -15,6 +15,7 @@ export http_proxy="http://wwwcache.sanger.ac.uk:3128"
 export HTTP_PROXY="${http_proxy}"
 export https_proxy="${http_proxy}"
 export HTTPS_PROXY="${http_proxy}"
+export no_proxy=localhost,127.0.0.1,.internal.sanger.ac.uk
 
 # Prompt
 _hgi_group() {
