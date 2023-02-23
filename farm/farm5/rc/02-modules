@@ -1,4 +1,4 @@
-export MODULEPATH="/software/modules/ISG:${MODULEPATH}"
+export MODULEPATH="/software/modules:${MODULEPATH}"
 
 # Singularity
 module add singularity/3.6.4
