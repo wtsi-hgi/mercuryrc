@@ -1,8 +1,1 @@
-declare -a _ref_paths=(
-  "/lustre/scratch117/core/sciops_repository/cram_cache/%2s/%2s/%s"
-  "/lustre/scratch118/core/sciops_repository/cram_cache/%2s/%2s/%s"
-  "URL=http:://sf2-farm-srv1.internal.sanger.ac.uk::8000/%s"
-)
-
-export REF_PATH="$(printf "%s:" "${_ref_paths[@]}")${REF_PATH}"
-unset _ref_paths
+module add ISG/sanger-samtools-refpath
