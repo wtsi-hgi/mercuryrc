@@ -1,3 +1,4 @@
+bind -f <(cat <<HEREDOC
 # /etc/inputrc: initialization file for readline
 #
 # For more information on how this file works, please see the
@@ -79,3 +80,5 @@ $endif
 # fix Home and End for German users
 "\e[7~": beginning-of-line
 "\e[8~": end-of-line
+HEREDOC
+);
