@@ -117,3 +117,4 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+export WR_CONFIG_DIR=/nfs/hgi/wr/lsf
