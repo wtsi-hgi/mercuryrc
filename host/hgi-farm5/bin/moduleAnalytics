@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ "$(hostname)" != "hgi-farm5" ]; then
+	echo "This script should only be run on hgi-farm5!" >&2;
+
+	exit 1;
+fi;
+
+declare ANALYTICSBASE="/nfs/hgi/softpack/analytics/";
+declare PIDFILE="$ANALYTICSBASE/pid";
+
+if [ -e "$PIDFILE" ]; then
+	ps -P "$(cat "$PIDFILE")" &> /dev/null && {
+		echo "Module Analytics Server Already Running";
+
+		exit 0;
+	}
+fi;
+
+echo "Starting Module Analytics Server..." >&2;
+
+/software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -e "$ANALYTICSBASE"/log.err -o "$ANALYTICSBASE"/log.out /software/hgi/installs/softpack/go-softpack-analytics/go-softpack-analytics -p 6192 -o /nfs/hgi/softpack/analytics.log;
+
+echo "...Done" >&2;
