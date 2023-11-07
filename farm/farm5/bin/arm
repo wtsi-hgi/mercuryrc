@@ -8,7 +8,7 @@ set -euo pipefail
 readonly BINARY="$(readlink -f "$0")"
 readonly BASH="/bin/bash"
 
-readonly LOG_DIR="hgi-farm5:/hgi/audit"
+readonly LOG_DIR="/hgi/audit"
 
 stderr() {
   # Write a message to stderr (in red, if it's a TTY)
@@ -71,7 +71,7 @@ start() {
     cd "${log_root}/${log_dir}"
     md5sum env transcript > "${log_root}/${log_dir}/md5sum"
     tar czf "${log_root}/${log_dir}.tar.gz" -C "${log_root}" "${log_dir}"
-    scp "${log_root}/${log_dir}.tar.gz" "${LOG_DIR}/"
+    cp "${log_root}/${log_dir}.tar.gz" "${LOG_DIR}/"
   ) >/dev/null 2>&1 &
 }
 
