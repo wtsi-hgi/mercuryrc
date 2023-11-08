@@ -1,0 +1,32 @@
+#!/bin/bash
+
+if [ "$(hostname)" != "ibackup" ]; then
+	echo "This script should only be run on ibackup!" >&2;
+
+	exit 1;
+fi;
+
+declare PIDFILE="/nfs/hgi/wr/lsf/.wr_production/pid"
+
+ps -P "$(cat "$PIDFILE" 2>/dev/null)" &> /dev/null || {
+	export WR_CONFIG_DIR=/nfs/hgi/wr/lsf;
+	/software/hgi/installs/wr/wr manager start;
+}
+
+
+declare BASE="/nfs/hgi/ibackup/daemon";
+PIDFILE="$BASE/pid";
+
+if [ -e "$PIDFILE" ]; then
+	ps -P "$(cat "$PIDFILE" 2>/dev/null)" &> /dev/null && {
+		echo "ibackup Already Running";
+
+		exit 0;
+	}
+fi;
+
+echo "Starting ibackup service...";
+
+/software/hgi/installs/daemonize/daemonize -p $BASE/pid -l $BASE/lock -e $BASE/err "$(realpath /software/hgi/installs/ibackup/ibackup)" server -k /nfs/hgi/ibackup/server/key.pem --logfile /nfs/hgi/ibackup/server/log -s ldap-ro.internal.sanger.ac.uk -l 'uid=%s,ou=people,dc=sanger,dc=ac,dc=uk' --hardlinks_collection /humgen/ibackup/hardlinks /local/ibackup/production.db /nfs/hgi/ibackup/server/production.db.bk
+
+echo "...Done";
