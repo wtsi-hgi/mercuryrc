@@ -17,8 +17,8 @@ if [ -e "$PIDFILE" ]; then
 	}
 fi;
 
-echo "Starting Module Analytics Server..." >&2;
+echo "Starting Module Analytics Server...";
 
 /software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -e "$ANALYTICSBASE"/log.err -o "$ANALYTICSBASE"/log.out /software/hgi/installs/softpack/go-softpack-analytics/go-softpack-analytics -p 6192 -o /nfs/hgi/softpack/analytics.log;
 
-echo "...Done" >&2;
+echo "...Done";
