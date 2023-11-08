@@ -8,11 +8,11 @@ fi;
 
 export WR_CONFIG_DIR=/nfs/hgi/wr/openstack;
 
-wr status --deployment production &> /dev/null || {
-	echo "Starting WR in OpenStack..." >&2;
+/software/hgi/installs/wr/wr status --deployment production &> /dev/null || {
+	echo "Starting WR in OpenStack...";
 
 	source /hgi/secrets/mercury-theta-hgi-dev-openrc.sh;
-	wr cloud deploy --manager_flavor m2.medium;
+	/software/hgi/installs/wr/wr cloud deploy --manager_flavor m2.medium;
 }
 
 declare SOFTPACK_CONFIG=~/.softpack/builder/gsb-config.yml;
@@ -34,8 +34,8 @@ if [ -e "$PIDFILE" ]; then
 	}
 fi;
 
-echo "Starting GSB Server..." >&2;
+echo "Starting GSB Server...";
 
 /software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -e "$GSBBASE"/log.err -o "$GSBBASE"/log.out /software/hgi/installs/softpack/gsb-build/gsb server;
 
-echo "...Done" >&2;
+echo "...Done";
