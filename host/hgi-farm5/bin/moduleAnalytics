@@ -6,19 +6,61 @@ if [ "$(hostname)" != "hgi-farm5" ]; then
 	exit 1;
 fi;
 
+declare PORT="6192";
+declare EXE="/software/hgi/installs/softpack/go-softpack-analytics/go-softpack-analytics";
 declare ANALYTICSBASE="/nfs/hgi/softpack/analytics/";
 declare PIDFILE="$ANALYTICSBASE/pid";
+declare LOG="/nfs/hgi/softpack/analytics.log";
+declare LOGOUT="$ANALYTICSBASE/log.out";
+declare LOGERR="$ANALYTICSBASE/log.err";
 
-if [ -e "$PIDFILE" ]; then
-	ps -P "$(cat "$PIDFILE")" &> /dev/null && {
-		echo "Module Analytics Server Already Running";
+start() {
+	if [ -e "$PIDFILE" ]; then
+		ps -P "$(cat "$PIDFILE")" &> /dev/null && {
+			echo "Module Analytics Server Already Running";
 
-		exit 0;
-	}
-fi;
+			exit 0;
+		}
+	fi;
 
-echo "Starting Module Analytics Server...";
+	echo "Starting Module Analytics Server...";
 
-/software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -e "$ANALYTICSBASE"/log.err -o "$ANALYTICSBASE"/log.out /software/hgi/installs/softpack/go-softpack-analytics/go-softpack-analytics -p 6192 -o /nfs/hgi/softpack/analytics.log;
+	/software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -a -e "$LOGERR" -o "$LOGOUT" "$EXE" -p "$PORT" -o "$LOG";
 
-echo "...Done";
+	echo "...Done";
+}
+
+stop() {
+	if [ -e "$PIDFILE" ]; then
+		declare PID="$(cat "$PIDFILE")";
+
+		ps -P "$(cat "$PIDFILE")" &> /dev/null && {
+			kill "$PID" && echo "Module Analytics Stopped" || echo "Module Analytics Server Could Not Be Stopped";
+
+			exit 0;
+		}
+	fi;
+
+	echo "Module Analytics Not Running";
+}
+
+case "${1:-}" in
+"start") start;;
+"stop") stop;;
+"log") less +G "$LOG";;
+"logout") less +G "$LOGOUT";;
+"logerr") less +G "$LOGERR";;
+*)
+	cat <<HEREDOC
+Usage $0 start|stop|log|logout|logerr
+
+Subcommand
+
+  start   Start the analytics server if not already running.
+  stop    Stop the running analytics server.
+  log     Show the captured analytics.
+  logout  Show the standard output log (useful for debugging).
+  logerr  Show the standard error log (useful for debugging).
+HEREDOC
+esac;
+
