@@ -87,6 +87,7 @@ case "${1:-}" in
 "stop") stop;;
 "fullstop") fullstop;;
 "buildlog") buildlog;;
+"status") [ -e "$PIDFILE" ] && ps -P "$(cat "$PIDFILE")" &> /dev/null && echo "Running" || echo "Not Running";;
 "logout") less +G "$LOGOUT";;
 "logerr") less +G "$LOGERR";;
 *)
@@ -97,6 +98,7 @@ Subcommand
   start     Start GSB.
   stop      Stop GSB.
   fullstop  Stop GSB and WR cloud deployment.
+  status    Prints whether GSB is running or not.
   buildlog  Show the build log for an environment.
   logout    Show the standard output log (useful for debugging).
   logerr    Show the standard error log (useful for debugging).
