@@ -70,10 +70,23 @@ fullstop() {
 	stop;
 }
 
+buildlog() {
+	echo -n "Enter environment path: "
+	read envpath;
+	echo -n "Enter environment version: ";
+	read version;
+
+	{
+		s3cmd get "s3://spack/builds/$envpath/$version/builder.out" - 2> /dev/null ||
+		echo "Build log not found";
+	} | less +G
+}
+
 case "${1:-}" in
 "start") start;;
 "stop") stop;;
 "fullstop") fullstop;;
+"buildlog") buildlog;;
 "logout") less +G "$LOGOUT";;
 "logerr") less +G "$LOGERR";;
 *)
@@ -84,6 +97,7 @@ Subcommand
   start     Start GSB.
   stop      Stop GSB.
   fullstop  Stop GSB and WR cloud deployment.
+  buildlog  Show the build log for an environment.
   logout    Show the standard output log (useful for debugging).
   logerr    Show the standard error log (useful for debugging).
 HEREDOC
