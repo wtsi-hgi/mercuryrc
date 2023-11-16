@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [ "$(hostname)" != "ibackup" ]; then
+	echo "This script should only be run on ibackup!" >&2;
+
+	exit 1;
+fi;
+
+declare PIDFILE="/nfs/hgi/wr/lsf/.wr_production/pid"
+
+ps -P "$(cat "$PIDFILE" 2>/dev/null)" &> /dev/null || {
+	export WR_CONFIG_DIR=/nfs/hgi/wr/lsf;
+	/software/hgi/installs/wr/wr manager start;
+}
+
+
+declare BASE="/nfs/hgi/ibackup/daemon-gengen";
+PIDFILE="$BASE/pid";
+
+if [ -e "$PIDFILE" ]; then
+	ps -P "$(cat "$PIDFILE" 2>/dev/null)" &> /dev/null && {
+		echo "ibackup Already Running";
+
+		exit 0;
+	}
+fi;
+
+echo "Starting ibackup service...";
+
+export WR_CONFIG_DIR=/nfs/hgi/wr/lsf;
+export IBACKUP_SERVER_URL='ibackup.internal.sanger.ac.uk:4679';
+export IBACKUP_SERVER_CERT='/nfs/hgi/ibackup/server/cert.pem';
+export no_proxy=localhost,127.0.0.1,.internal.sanger.ac.uk;
+export IBACKUP_REMOTE_DB_BACKUP_PATH='/archive/gengen/ibackup/db.bk';
+export IRODS_ENVIRONMENT_FILE=/nfs/users/nfs_m/mercury/.irods/irods_environment.json;
+export PATH="/software/hgi/installs/ibackup:$PATH";
+/software/hgi/installs/daemonize/daemonize -p $BASE/pid -l $BASE/lock -e $BASE/err "$(realpath /software/hgi/installs/ibackup/ibackup)" server -k /nfs/hgi/ibackup/server/key.pem --logfile /nfs/hgi/ibackup/server/log.gengen -s ldap-ro.internal.sanger.ac.uk -l 'uid=%s,ou=people,dc=sanger,dc=ac,dc=uk' --hardlinks_collection /archive/gengen/ibackup/hardlinks /local/ibackup/gengen.db /nfs/hgi/ibackup/server/gengen.db.bk;
+
+echo "...Done";
