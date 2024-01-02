@@ -1,0 +1,1 @@
+alias apps="LC_HGI_USER=mw31 ssh ubuntu@apps.hgi.sanger.ac.uk -o SendEnv=1"
