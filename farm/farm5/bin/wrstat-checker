@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Author: Michael Grace <mg38@sanger.ac.uk>
+# Author: Ash Holland <ah37@sanger.ac.uk>
+
+# Examine wrstat's output to see if anything looks wrong.
+
+wrstat_dir=/nfs/wrstat
+grace_days=2 # number of 24-hour periods to wait before producing a warning
+
+# If any wrstat output files have been touched recently, everything is good, and we can exit immediately.
+if [[ $(find "$wrstat_dir" -mtime -$(( grace_days - 1 )) 2>/dev/null) != "" ]]; then
+	exit
+fi
+
+# Otherwise: we need to send an email!
+# Hopefully cron should email mercury (i.e. people in HGI) when we print things from this script.
+echo "Warning: No wrstat output has been generated in $wrstat_dir within the last $grace_days days."
+
+# If /nfs/wrstat is full, we should warn about that explicitly.
+echo "Disk usage information:"
+df -h "$wrstat_dir"
+
+# TODO: include information about lost wr jobs (only accessible by sb10).
