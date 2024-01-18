@@ -5,7 +5,7 @@
 
 # Examine wrstat's output to see if anything looks wrong.
 
-wrstat_dir=/nfs/wrstat
+wrstat_dir=/nfs/wrstat/output_sb10
 grace_days=2 # number of 24-hour periods to wait before producing a warning
 
 # If any wrstat output files have been touched recently, everything is good, and we can exit immediately.
