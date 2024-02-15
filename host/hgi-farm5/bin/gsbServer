@@ -39,7 +39,7 @@ start() {
 
 	echo "Starting GSB Server...";
 
-	export PATH="/software/hgi/installs/wr/";
+	export PATH="/software/hgi/installs/wr/:/software/singularity/3.11.4/bin/:/software/singularity/v3.10.0/bin/";
 	/software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -a -e "$LOGERR" -o "$LOGOUT" /software/hgi/installs/softpack/gsb-build/gsb server;
 
 	echo "...Done";
