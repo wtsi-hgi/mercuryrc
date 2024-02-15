@@ -26,7 +26,7 @@ start() {
 	/software/hgi/installs/wr/wr status --deployment production &> /dev/null || {
 		echo "Starting WR in OpenStack...";
 
-		/software/hgi/installs/wr/wr cloud deploy --manager_flavor m2.medium;
+		/software/hgi/installs/wr/wr cloud deploy --manager_flavor m2.large;
 	}
 
 	if [ -e "$PIDFILE" ]; then
