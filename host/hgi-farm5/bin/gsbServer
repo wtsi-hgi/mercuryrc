@@ -82,6 +82,10 @@ buildlog() {
 	} | less +G
 }
 
+clearBuried() {
+	wr remove -ab;
+}
+
 case "${1:-}" in
 "start") start;;
 "stop") stop;;
@@ -90,17 +94,19 @@ case "${1:-}" in
 "status") [ -e "$PIDFILE" ] && ps -P "$(cat "$PIDFILE")" &> /dev/null && echo "Running" || echo "Not Running";;
 "logout") less +G "$LOGOUT";;
 "logerr") less +G "$LOGERR";;
+"clearburied") clearBuried;;
 *)
 	cat <<HEREDOC
 Usage: $0 start|stop|fullstop|logout|logerr
 
 Subcommand
-  start     Start GSB.
-  stop      Stop GSB.
-  fullstop  Stop GSB and WR cloud deployment.
-  status    Prints whether GSB is running or not.
-  buildlog  Show the build log for an environment.
-  logout    Show the standard output log (useful for debugging).
-  logerr    Show the standard error log (useful for debugging).
+  start       Start GSB.
+  stop        Stop GSB.
+  fullstop    Stop GSB and WR cloud deployment.
+  status      Prints whether GSB is running or not.
+  buildlog    Show the build log for an environment.
+  clearburied Clear buried items in WR.
+  logout      Show the standard output log (useful for debugging).
+  logerr      Show the standard error log (useful for debugging).
 HEREDOC
 esac;
