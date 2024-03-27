@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+
+# Armed Bash
+# Christopher Harrison <ch12@sanger.ac.uk>
+
+set -euo pipefail
+
+readonly BINARY="$(readlink -f "$0")"
+readonly BASH="/bin/bash"
+
+readonly LOG_DIR="/hgi/audit"
+
+stderr() {
+  # Write a message to stderr (in red, if it's a TTY)
+  local message="$*"
+  [[ -t 2 ]] && message="$(tput setaf 1)${message}$(tput sgr0)"
+  >&2 echo "${message}"
+}
+
+out_of_hours() {
+  # Return affirmatively outside of 9am to 4pm
+  local -i hour="$(date "+%-H")"
+  if (( hour > 8 )) && (( hour < 16 )); then
+    return 1
+  fi
+}
+
+is_valid_user() {
+  # Check user is not mercury and is allowed to sudo as mercury
+  local user="$1"
+
+  [[ "${user}" == "mercury" ]] && return 1
+
+  getent group mercury-sudoers \
+  | cut -d: -f4 \
+  | tr "," "\n" \
+  | grep -Fqx "${user}"
+}
+
+start() {
+  # Main entrypoint
+  local user="$1"
+  local -i out_of_hours_ok="$2"
+
+  if ! is_valid_user "${user}"; then
+    stderr "The HGI armed environment cannot establish your real username"
+    stderr "You must either sudo as mercury, or set the LC_HGI_USER environment"
+    stderr "variable in your SSH session"
+    exit 1
+  fi
+
+  if out_of_hours && ! (( out_of_hours_ok )); then
+    stderr "The HGI armed environment cannot be used outside the hours of 9am to 4pm"
+    stderr "You may bypass this restraint using the --yes-i-know-its-late option"
+    exit 1
+  fi
+
+  # Create temporary logging directory
+  local log_root="$(mktemp -d)"
+  local log_dir="$(date -u "+%Y%m%d%H%M%S")-${user}"
+  mkdir -p "${log_root}/${log_dir}"
+
+  env > "${log_root}/${log_dir}/env"
+  script -qc "\"${BINARY}\" _shell" "${log_root}/${log_dir}/transcript"
+
+  # Collect up logs and copy to the permanent logging directory
+  # We do this in a background subshell to speed up the return time, for
+  # the user, to the normal shell and to help prevent Ctrl+C
+  (
+    trap '' SIGINT
+    cd "${log_root}/${log_dir}"
+    md5sum env transcript > "${log_root}/${log_dir}/md5sum"
+    tar czf "${log_root}/${log_dir}.tar.gz" -C "${log_root}" "${log_dir}"
+    cp "${log_root}/${log_dir}.tar.gz" "${LOG_DIR}/"
+  ) >/dev/null 2>&1 &
+}
+
+shell() {
+  # Start the armed shell
+  stderr "You are now in the HGI armed environment"
+  stderr "You are ${HGI_USER}, logged in as mercury; this session is being recorded"
+  out_of_hours && stderr "You have opted to perform unsafe actions out-of-hours"
+  echo "For more information, see https://confluence.sanger.ac.uk/display/HGI/Data+Management+Policy" >&2
+
+  exec "${BASH}" --rcfile <("${BINARY}" _profile)
+}
+
+profile() {
+  # Armed environment profile
+  cat <<-'EOF'
+	# No globbing (-f) or brace expansion (+B)
+	# Undefined variables are an error (-u)
+	# No file clobbering with redirection (-C)
+	set -fuC +B
+	
+	export PS1='\n\h:$(pwd)\n\e[1mARMED\e[0m \D{%-I:%M:%S%P}> '
+	export HGI_ARMED=1
+	
+	arm() {
+	  >&2 echo "You are already in the armed environment"
+	  return 1
+	}
+	EOF
+}
+
+main() {
+  # Command line argument delegation
+  local mode="start"
+  local user="${HGI_USER-NONE}"
+  local -i out_of_hours_ok=0
+
+  while (( $# )); do
+    case "$1" in
+      "--yes-i-know-its-late") out_of_hours_ok=1;;
+      *)                       mode=$1;;
+    esac
+    shift
+  done
+
+  case "${mode}" in
+    "start")
+      start "${user}" "${out_of_hours_ok}";;
+
+    # Non-user commands
+    "_shell")   shell;;
+    "_profile") profile;;
+
+    *)
+      stderr "Unknown arguments"
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

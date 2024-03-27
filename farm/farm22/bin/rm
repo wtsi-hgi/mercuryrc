@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# Declawed rm
+# Christopher Harrison <ch12@sanger.ac.uk>
+
+readonly RM="/bin/rm"
+
+# Cases
+# * In a normal, interactive environment, the "rm" Bash function will
+#   override this script.
+# * In the armed environment, HGI_ARMED will be set to 1 and thus this
+#   script will run.
+# * In shell scripts, HGI_ARMED will not be set and the "rm" function
+#   won't exist, so this script will run and fallback to the system rm.
+if ! (( ${HGI_ARMED-0} )); then
+  exec "${RM}" "$@"
+fi
+
+set -eu
+
+declare -a OPTIONS=()
+declare -a FILES=()
+declare -i IN_FILES=0
+
+# Iterate through the provided arguments and
+# silo them into either options or files
+while (( $# )); do
+  case "$1" in
+    "--")
+      if (( IN_FILES ));
+        then FILES+=("$1")
+        else IN_FILES=1
+      fi
+      ;;
+
+    "--"?* | "-"?*)
+      if (( IN_FILES ));
+        then FILES+=("$1")
+        else OPTIONS+=("$1")
+      fi
+      ;;
+
+    *)
+      IN_FILES=1
+      FILES+=("$1")
+      ;;
+  esac
+
+  shift
+done
+
+# Fail if no files are specified
+if ! (( ${#FILES[@]} )); then
+  >&2 echo "$(tput setaf 1)No files provided!$(tput sgr0)"
+  exit 1
+fi
+
+# Append -Iv to the options, with the option separator
+OPTIONS+=("-Iv" "--")
+
+# Output and execute
+declare -a EXEC=("${RM}" "${OPTIONS[@]}" "${FILES[@]}")
+>&2 echo "${EXEC[*]}"
+exec "${EXEC[@]}"
