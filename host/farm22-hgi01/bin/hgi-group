@@ -1,0 +1,321 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly BINARY="$(readlink -f "$0")"
+readonly PROGNAME="$(basename "${BINARY}")"
+
+stderr() {
+  local message="$*"
+  [[ -t 2 ]] && message="$(tput setaf 1)${message}$(tput sgr0)"
+  >&2 echo "${message}"
+}
+
+commands() {
+  # Available commands
+  sed -n "/^#@/,/^#@/p" "${BINARY}" \
+  | grep -Po "(?<=^command-).+(?=\(\))"
+}
+
+user_commands() {
+  # End-user commands
+  commands | grep -v ^_
+}
+
+contains() {
+  # Check the given line exists in the input
+  local line="$1"
+  grep -Fxq "${line}"
+}
+
+usage() {
+  local commands="$(user_commands | paste -sd "|" -)"
+  >&2 echo "Usage: ${PROGNAME} [${commands}] GROUP"
+  exit 1
+}
+
+########################################################################
+
+ldap_search() {
+  # LDAP search string for groups, users or humgen groups
+  local class="$1"
+  local id="$2"
+
+  case "${class}" in
+    "group")  echo "(&(objectClass=posixGroup)(cn=${id}))";;
+    "user")   echo "(&(objectClass=posixAccount)(uid=${id}))";;
+    "humgen") echo "(&(objectClass=sangerHumgenProjectGroup)$(ldap_search group "${id}"))";;
+  esac
+}
+
+ldap_entry() {
+  # Get LDAP attributes for entry
+  local search="$(ldap_search "$1" "$2")"
+
+  shift 2
+  local -a attrs=("$@")
+
+  ldapsearch -xLLL "${search}" "${attrs[@]}" \
+  | awk '
+    BEGIN { FS = ": "; OFS = "\t" }
+    $0 && $1 != "dn" { print $1, $2 }
+  '
+}
+
+posix_group_id() {
+  local group="$1"
+  getent group "${group}" | cut -d: -f3
+}
+
+group_editable() {
+  local group="$1"
+  ldap_entry group "${group}" owner \
+  | cut -f2 \
+  | contains "uid=mercury,ou=people,dc=sanger,dc=ac,dc=uk"
+}
+
+is_humgen() {
+  local group="${group}"
+  ldap_entry humgen "${group}" \
+  | grep -q .
+}
+
+#@ Subcommands #########################################################
+
+command-show() {
+  local group="$1"
+
+  _heading() {
+    local heading="$*"
+    [[ -t 1 ]] && heading="$(tput bold)${heading}$(tput sgr0)"
+    echo "${heading}"
+  }
+
+  _bullet() {
+    sed 's/^/- /'
+  }
+
+  _user_dn_to_uid() {
+    awk '
+      BEGIN { FS = "="; RS = "[,\n]" }
+      $1 == "uid" { print $2 }
+    '
+  }
+
+  _human_name() {
+    local uid
+    local remainder
+
+    while read -r uid remainder; do
+      ldap_entry user "${uid}" uid cn \
+      | awk -v REMAINDER="${remainder}" '
+        BEGIN { FS = OFS = "\t" }
+        { user[$1] = $2 }
+        END { print user["cn"] " (" user["uid"] ")", REMAINDER }
+      '
+    done
+  }
+
+  _ldap_group_members() {
+    ldap_entry group "${group}" memberUid \
+    | cut -f2 \
+    | sort
+  }
+
+  _posix_group_members() {
+    local gid="$(posix_group_id "${group}")"
+
+    getent passwd \
+    | awk -v GID="${gid}" '
+      BEGIN { FS = ":" }
+      $4 == GID { print $1 }
+    ' \
+    | sort
+  }
+
+  if is_humgen "${group}"; then
+    _heading "PI"
+    ldap_entry group "${group}" sangerProjectPI \
+    | cut -f2 \
+    | _user_dn_to_uid \
+    | _human_name \
+    | _bullet
+  else
+    stderr "This is not a Human Genetics Programme group!"
+  fi
+
+  echo
+  _heading "Owners"
+  ldap_entry group "${group}" owner \
+  | cut -f2 \
+  | sort \
+  | _user_dn_to_uid \
+  | _human_name \
+  | _bullet
+
+  echo
+  _heading "Members"
+  comm --output-delimiter=$'\t' \
+    <(_ldap_group_members) \
+    <(_posix_group_members) \
+  | awk '
+    BEGIN { FS = OFS = "\t" }
+    { print $NF, NF == 2 }
+  ' \
+  | _human_name \
+  | _bullet \
+  | awk '
+    BEGIN { FS = "\t" }
+    $2 { $1 = $1 " *"; out_of_sync = 1 }
+    { print $1 }
+    END { if (out_of_sync) exit 1 }
+  ' \
+  || {
+    echo
+    stderr "(*) These users are not members of the LDAP group!"
+  }
+}
+
+command-check() {
+  local group="$1"
+
+  _vivek_strike() {
+    # When leaving trailing spaces, ldapsearch returns the entry base64
+    # encoded and changes the attribute "delimiter" to a double colon.
+    # Thus any trailing spaces can be detected by looking for attributes
+    # ending with an errant colon.
+    ldap_entry group "${group}" \
+    | cut -f1 \
+    | grep -Eq ":$"
+  }
+
+  _mismatched_members() {
+    _members() {
+      # The PCRE extracts the POSIX user ID from the DN
+      ldap_entry group "${group}" member \
+      | cut -f2 \
+      | grep -Po "(?<=uid=).+?(?=,)" \
+      | sort
+    }
+
+    _memberUids() {
+      ldap_entry group "${group}" memberUid \
+      | cut -f2 \
+      | sort
+    }
+
+    comm -3 <(_members) <(_memberUids) \
+    | grep -q .
+  }
+
+  if ! group_editable "${group}"; then
+    stderr "Group is not owned by mercury, so cannot be edited"
+  fi
+
+  if ! is_humgen "${group}"; then
+    stderr "Humgen groups must have an object class of sangerHumgenProjectGroup, with its associated attributes"
+  fi
+
+  if _vivek_strike; then
+    stderr "Entries contain trailing whitespace; this MUST be corrected"
+  fi
+
+  if _mismatched_members; then
+    stderr "member and memberUid lists do not correspond; this MUST be corrected"
+  fi
+}
+
+command-edit() {
+  local group="$1"
+  local warning=""
+
+  if ! group_editable "${group}"; then
+    stderr "Cannot edit group \"${group}\"!"
+    exit 1
+  fi
+
+  case "${group}" in
+    "ddd")
+      warning="Access to the DDD project requires a signed data access agreement. Please contact the project group before adding anyone new."
+      ;;
+
+    "pagedata")
+      warning="Access to the PAGE project requires a signed data access agreement. Please contact the project group before adding anyone new."
+      ;;
+
+    "interval"*)
+      warning="The Interval Project is in collaboration with the University of Cambridge. Please contact the RA/PI before adding anyone new."
+      ;;
+  esac
+
+  if [[ "${warning}" ]]; then
+    stderr "${warning}"
+    read -rsn1 -p "Press any key to continue..."
+    echo
+  fi
+
+  HOME=/hgi/home/mercury ldapvi "$(ldap_search group "${group}")"
+  command-check "${group}"
+}
+
+command-_completion() {
+  local fn_name="_${PROGNAME}_completion"
+
+  _commands() {
+    user_commands | paste -sd$'\t' -
+  }
+
+  cat <<-EOF
+	${fn_name}() {
+	  local current="\${COMP_WORDS[\${COMP_CWORD}]}"
+	
+	  case "\${#COMP_WORDS[@]}" in
+	    2)
+	      COMPREPLY=(\$(compgen -gW "$(_commands | tr $'\t' " ")" -- "\${current}"));;
+	
+	    3)
+	      case "\${COMP_WORDS[1]}" in
+	        $(_commands | sed -E 's/\w+/"&"/g;s/\t/ | /g'))
+	          COMPREPLY=(\$(compgen -g -- "\${current}"));;
+	        *) return;;
+	      esac;;
+	
+	    *)
+	      return;;
+	  esac
+	}
+	
+	complete -F "${fn_name}" "${PROGNAME}"
+	EOF
+}
+
+#@ Entrypoint ##########################################################
+
+main() {
+  # There's something deeply unsatisfying about the manual disconnect
+  # between parsing/validating command line arguments, generating
+  # completions and the usage text :P
+  local -a args=("$@")
+  local default="$(user_commands | head -n1)"
+
+  # We must have some arguments
+  (( ${#args[@]} )) || usage
+
+  # Prepend default command if none is recognised
+  commands | contains "${args[0]}" || args=("${default}" "${args[@]}")
+
+  # Sanity check user commands
+  user_commands | contains "${args[0]}" && {
+    (( ${#args[@]} != 2 )) && usage
+
+    if ! posix_group_id "${args[1]}" >/dev/null; then
+      stderr "No such group \"${args[1]}\"!"
+      exit 1
+    fi
+  }
+
+  args[0]="command-${args[0]}"
+  "${args[@]}"
+}
+
+main "$@"

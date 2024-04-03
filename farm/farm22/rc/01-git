@@ -1,0 +1,12 @@
+if ! [[ "${HGI_USER}" = "NONE" ]]; then
+  declare _EMAIL="${HGI_USER}@sanger.ac.uk"
+  declare _NAME="$(ldap "uid=${HGI_USER}" | jq -r ".[].cn")"
+
+  export GIT_AUTHOR_NAME="${_NAME}"
+  export GIT_AUTHOR_EMAIL="${_EMAIL}"
+  export GIT_COMMITTER_NAME="${_NAME}"
+  export GIT_COMMITTER_EMAIL="${_EMAIL}"
+
+  unset _NAME
+  unset _EMAIL
+fi

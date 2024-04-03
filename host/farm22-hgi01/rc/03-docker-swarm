@@ -1,0 +1,1 @@
+alias hgi-docker="LC_HGI_USER=$HGI_USER ssh ubuntu@172.27.22.139"

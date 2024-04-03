@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Safe(r) tar
+# Christopher Harrison <ch12@sanger.ac.uk>
+
+readonly TAR="/bin/tar"
+
+declare -a OPTIONS=()
+
+while (( $# )) && [[ "$1" != "--" ]]; do
+  if [[ "$1" = "--remove-files" ]]; then
+    >&2 echo "$(tput setaf 1)--remove-files is forbidden and has been stripped out$(tput sgr0)"
+    shift
+    continue
+  fi
+
+  OPTIONS+=("$1")
+  shift
+done
+
+exec "${TAR}" "${OPTIONS[@]}" "$@"

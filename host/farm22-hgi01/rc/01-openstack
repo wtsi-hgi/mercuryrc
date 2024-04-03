@@ -1,0 +1,15 @@
+export OS_AUTH_URL="https://theta.internal.sanger.ac.uk:5000"
+
+export OS_USER_DOMAIN_NAME="Default"
+export OS_PROJECT_DOMAIN_ID="default"
+
+unset OS_TENANT_ID
+unset OS_TENANT_NAME
+
+export OS_USERNAME="mercury"
+export OS_PASSWORD="$(cat /hgi/secrets/openstack-mercury.pw)"
+
+export OS_REGION_NAME="regionOne"
+
+export OS_INTERFACE="public"
+export OS_IDENTITY_API_VERSION="3"

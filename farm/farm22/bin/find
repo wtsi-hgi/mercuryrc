@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Safe(r) find
+# Christopher Harrison <ch12@sanger.ac.uk>
+
+readonly FIND="/usr/bin/find"
+
+fail() {
+  >&2 echo "$(tput setaf 1)find $* is forbidden$(tput sgr0)"
+  exit 1
+}
+
+declare -a OPTIONS=()
+while (( $# )); do
+  case "$1" in
+    "-delete") fail "-delete";;
+    "-exec")   OPTIONS+=("$1"); [[ "${2-}" == "rm" ]] && fail "-exec rm";;
+    *)         OPTIONS+=("$1");;
+  esac
+  shift
+done
+
+exec "${FIND}" "${OPTIONS[@]}"
