@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ "$(hostname)" != "ibackup" ]; then
-	echo "This script should only be run on ibackup!" >&2;
+if [ "$(hostname)" != "farm22-ibackup01" ]; then
+	echo "This script should only be run on farm22-ibackup01!" >&2;
 
 	exit 1;
 fi;
@@ -28,7 +28,7 @@ fi;
 echo "Starting ibackup service...";
 
 export WR_CONFIG_DIR=/nfs/hgi/wr/lsf;
-export IBACKUP_SERVER_URL='ibackup.internal.sanger.ac.uk:4679';
+export IBACKUP_SERVER_URL='farm22-ibackup01.internal.sanger.ac.uk:4679';
 export IBACKUP_SERVER_CERT='/nfs/hgi/ibackup/server/cert.pem';
 export no_proxy=localhost,127.0.0.1,.internal.sanger.ac.uk;
 export IBACKUP_REMOTE_DB_BACKUP_PATH='/archive/gengen/ibackup/db.bk';
