@@ -10,7 +10,7 @@ declare PORT="6192";
 declare EXE="/software/hgi/installs/softpack/go-softpack-analytics/go-softpack-analytics";
 declare ANALYTICSBASE="/nfs/hgi/softpack/analytics/";
 declare PIDFILE="$ANALYTICSBASE/pid";
-declare LOG="/nfs/hgi/softpack/analytics.log";
+declare DB="/nfs/hgi/softpack/analytics.db";
 declare LOGOUT="$ANALYTICSBASE/log.out";
 declare LOGERR="$ANALYTICSBASE/log.err";
 
@@ -25,7 +25,7 @@ start() {
 
 	echo "Starting Module Analytics Server...";
 
-	/software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -a -e "$LOGERR" -o "$LOGOUT" "$EXE" -p "$PORT" -o "$LOG";
+	/software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -a -e "$LOGERR" -o "$LOGOUT" "$EXE" -p "$PORT" -d "$LOG";
 
 	echo "...Done";
 }
@@ -47,7 +47,6 @@ stop() {
 case "${1:-}" in
 "start") start;;
 "stop") stop;;
-"log") less +G "$LOG";;
 "logout") less +G "$LOGOUT";;
 "logerr") less +G "$LOGERR";;
 *)
@@ -58,7 +57,6 @@ Subcommand
 
   start   Start the analytics server if not already running.
   stop    Stop the running analytics server.
-  log     Show the captured analytics.
   logout  Show the standard output log (useful for debugging).
   logerr  Show the standard error log (useful for debugging).
 HEREDOC
