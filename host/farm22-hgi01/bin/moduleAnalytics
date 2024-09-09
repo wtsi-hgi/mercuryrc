@@ -25,7 +25,7 @@ start() {
 
 	echo "Starting Module Analytics Server...";
 
-	/software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -a -e "$LOGERR" -o "$LOGOUT" "$EXE" -p "$PORT" -d "$LOG";
+	/software/hgi/installs/daemonize/daemonize -p "$PIDFILE" -a -e "$LOGERR" -o "$LOGOUT" "$EXE" -p "$PORT" -d "$DB";
 
 	echo "...Done";
 }
