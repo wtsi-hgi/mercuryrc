@@ -7,7 +7,7 @@ if [ "$(hostname)" != "farm22-hgi01" ]; then
 fi;
 
 export WR_CONFIG_DIR=/nfs/hgi/wr/openstack;
-source /hgi/secrets/mercury-theta-hgi-dev-openrc.sh;
+source /hgi/secrets/mercury-theta-hgi-softpack-openrc.sh
 
 declare WR_PID="";
 declare SOFTPACK_CONFIG=~/.softpack/builder/gsb-config.yml;
