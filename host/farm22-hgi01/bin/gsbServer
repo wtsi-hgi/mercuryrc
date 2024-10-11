@@ -74,6 +74,10 @@ fullstop() {
 	stop;
 }
 
+building() {
+	ssh -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key ubuntu@"$(~/bin/wr_cloud_ips /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.wr-prod-mercury)" "$(sed -n -e '/^exit/,${//!p}' "$0")";
+}
+
 buildlog() {
 	echo -n "Enter environment path: "
 	read envpath;
@@ -94,6 +98,7 @@ case "${1:-}" in
 "start") start;;
 "stop") stop;;
 "fullstop") fullstop;;
+"building") building;;
 "buildlog") buildlog;;
 "status") [ -e "$PIDFILE" ] && ps -P "$(cat "$PIDFILE")" &> /dev/null && echo "Running" || echo "Not Running";;
 "logout") less +G "$LOGOUT";;
@@ -108,9 +113,28 @@ Subcommand
   stop        Stop GSB.
   fullstop    Stop GSB and WR cloud deployment.
   status      Prints whether GSB is running or not.
+  building    Show build logs for active builds.
   buildlog    Show the build log for an environment.
   clearburied Clear buried items in WR.
   logout      Show the standard output log (useful for debugging).
   logerr      Show the standard error log (useful for debugging).
 HEREDOC
 esac;
+
+exit 0;
+
+declare logs=()
+while read log; do
+	logs+=("$log");
+done < <(ps aux 2>&1 | grep "sudo singularity build --bind /tmp/[^ ]*:/tmp /tmp/wr_cwd/" | sed -e 's@.*sudo singularity build --bind /tmp/[^ ]*:/tmp \(/tmp/wr_cwd/.*/tmp/\)singularity.sif.*@\1builder.out@');
+
+if [ "${#logs[@]}" -eq 0 ]; then
+	echo "No builds running.";
+elif [ "${#logs[@]}" -eq 1 ]; then
+	tail -f "$logs";
+else
+	echo -n "Enter a build number (1..${#logs[@]}): ";
+	read logNum;
+
+	tail -f "${logs[$logNum]}";
+fi;
