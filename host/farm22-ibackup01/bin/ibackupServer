@@ -27,6 +27,10 @@ fi;
 
 echo "Starting ibackup service...";
 
+declare SLACK_CREDENTIALS="/nfs/hgi/ibackup/slack-credentials.humgen";
+
+[ -f "$SLACK_CREDENTIALS" ] && . "$SLACK_CREDENTIALS";
+
 export WR_CONFIG_DIR=/nfs/hgi/wr/lsf;
 export IBACKUP_SERVER_URL='farm22-ibackup01.internal.sanger.ac.uk:4678';
 export IBACKUP_SERVER_CERT='/nfs/hgi/ibackup/server/cert.pem';
