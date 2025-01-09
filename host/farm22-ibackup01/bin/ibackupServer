@@ -38,6 +38,6 @@ export no_proxy=localhost,127.0.0.1,.internal.sanger.ac.uk;
 export IBACKUP_REMOTE_DB_BACKUP_PATH='/humgen/ibackup/db.bk';
 export IRODS_ENVIRONMENT_FILE=/nfs/users/nfs_m/mercury/.irods/irods_environment.humgen.json;
 export PATH="/software/hgi/installs/ibackup:$PATH";
-/software/hgi/installs/daemonize/daemonize -p $BASE/pid -l $BASE/lock -e $BASE/err "$(realpath /software/hgi/installs/ibackup/ibackup)" server -k /nfs/hgi/ibackup/server/key.pem --logfile /nfs/hgi/ibackup/server/log -s ldap-ro.internal.sanger.ac.uk -l 'uid=%s,ou=people,dc=sanger,dc=ac,dc=uk' --hardlinks_collection /humgen/ibackup/hardlinks /local/ibackup/production.db /nfs/hgi/ibackup/server/production.db.bk;
+/software/hgi/installs/daemonize/daemonize -p $BASE/pid -l $BASE/lock -e $BASE/err "$(realpath /software/hgi/installs/ibackup/ibackup)" server -k /nfs/hgi/ibackup/server/key.pem --logfile /nfs/hgi/ibackup/server/log -s ldap-ro.internal.sanger.ac.uk -l 'uid=%s,ou=people,dc=sanger,dc=ac,dc=uk' -r 6h --hardlinks_collection /humgen/ibackup/hardlinks /local/ibackup/production.db /nfs/hgi/ibackup/server/production.db.bk;
 
 echo "...Done";
