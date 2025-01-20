@@ -26,11 +26,12 @@ start() {
 	/software/hgi/installs/wr/wr status --deployment production &> /dev/null || {
 		echo "Starting WR in OpenStack...";
 
-		/software/hgi/installs/wr/wr cloud deploy --manager_flavor m2.large;
-		declare ip="$(~/bin/wr_cloud_ips /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.wr-prod-mercury)";
-		ssh-keygen -f "/nfs/users/nfs_m/mercury/.ssh/known_hosts" -R "$ip"
-		ssh -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key -o "StrictHostKeyChecking=accept-new" ubuntu@"$ip" mkdir -p "~/spack/opt/spack/";
-		scp -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key -r /software/hgi/installs/softpack/spack/gpg/ ubuntu@"$ip":"~/spack/opt/spack/"
+		declare tmp="$(mktemp)";
+
+		echo -e "#!/bin/bash\nchmod -R go-rwx ~/spack/opt/spack/" > "$tmp";
+
+		/software/hgi/installs/wr/wr cloud deploy --manager_flavor m2.large --config_files "~/.s3cfg,~/.aws/credentials,~/.aws/config,$(find /software/hgi/installs/softpack/spack/gpg/ -type f | while read file;do echo "$file:~/spack/opt/spack/${file:38}";done | tr '\n' ',' | sed -e 's/,$//')" --script "$tmp" && ssh-keygen -f "/nfs/users/nfs_m/mercury/.ssh/known_hosts" -R "$(~/bin/wr_cloud_ips /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.wr-prod-mercury)" && ssh -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key -o "StrictHostKeyChecking=accept-new" ubuntu@"$ip" echo;
+		rm -f "$tmp";
 	}
 
 	if [ -e "$PIDFILE" ]; then
