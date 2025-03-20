@@ -28,10 +28,19 @@ start() {
 
 		declare tmp="$(mktemp)";
 
+		cleanup() {
+			rm -f "$tmp";
+		}
+
+		trap cleanup EXIT;
+
 		echo -e "#!/bin/bash\nchmod -R go-rwx ~/spack/opt/spack/" > "$tmp";
 
-		/software/hgi/installs/wr/wr cloud deploy --manager_flavor m2.large --config_files "~/.s3cfg,~/.aws/credentials,~/.aws/config,$(find /software/hgi/installs/softpack/spack/gpg/ -type f | while read file;do echo "$file:~/spack/opt/spack/${file:38}";done | tr '\n' ',' | sed -e 's/,$//')" --script "$tmp" && ssh-keygen -f "/nfs/users/nfs_m/mercury/.ssh/known_hosts" -R "$(~/bin/wr_cloud_ips /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.wr-prod-mercury)" && ssh -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key -o "StrictHostKeyChecking=accept-new" ubuntu@"$ip" echo;
-		rm -f "$tmp";
+		/software/hgi/installs/wr/wr cloud deploy --manager_flavor m2.large --config_files "~/.s3cfg,~/.aws/credentials,~/.aws/config,$(find /software/hgi/installs/softpack/spack/gpg/ -type f | while read file;do echo "$file:~/spack/opt/spack/${file:38}";done | tr '\n' ',' | sed -e 's/,$//')" --script "$tmp" && {
+			declare ip="$(~/bin/wr_cloud_ips /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.wr-prod-mercury)";
+
+			ssh-keygen -f "/nfs/users/nfs_m/mercury/.ssh/known_hosts" -R "$ip" && ssh -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key -o "StrictHostKeyChecking=accept-new" ubuntu@"$ip" echo;
+		} || exit 1;
 	}
 
 	if [ -e "$PIDFILE" ]; then
