@@ -29,7 +29,7 @@ start() {
 		declare tmp="$(mktemp)";
 
 		cleanup() {
-			rm -f "$tmp";
+			unlink "$tmp";
 		}
 
 		trap cleanup EXIT;
