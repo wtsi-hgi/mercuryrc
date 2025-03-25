@@ -8,11 +8,15 @@ fi;
 
 declare PORT="6192";
 declare EXE="/software/hgi/installs/softpack/go-softpack-analytics/go-softpack-analytics";
+declare WEB="/software/hgi/installs/softpack/go-softpack-analytics/go-softpack-analytics-web";
 declare ANALYTICSBASE="/nfs/hgi/softpack/analytics/";
 declare PIDFILE="$ANALYTICSBASE/pid";
+declare WEBPIDFILE="$ANALYTICSBASE/web.pid";
 declare DB="/nfs/hgi/softpack/analytics.db";
 declare LOGOUT="$ANALYTICSBASE/log.out";
 declare LOGERR="$ANALYTICSBASE/log.err";
+declare WEBLOGOUT="$ANALYTICSBASE/web.log.out";
+declare WEBLOGERR="$ANALYTICSBASE/web.log.err";
 
 start() {
 	if [ -e "$PIDFILE" ]; then
@@ -44,11 +48,45 @@ stop() {
 	echo "Module Analytics Not Running";
 }
 
+webstart() {
+	if [ -e "$WEBPIDFILE" ]; then
+		ps -P "$(cat "$WEBPIDFILE")" &> /dev/null && {
+			echo "Module Analytics Webserver Already Running";
+
+			exit 0;
+		}
+	fi;
+
+	echo "Starting Module Analytics Webserver...";
+
+	/software/hgi/installs/daemonize/daemonize -p "$WEBPIDFILE" -a -e "$WEBLOGERR" -o "$WEBLOGOUT" "$WEB" -u "$(getent group hgi | cut -d':' -f4)";
+
+	echo "...Done";
+}
+
+webstop() {
+	if [ -e "$PIDFILE" ]; then
+		declare PID="$(cat "$WEBPIDFILE")";
+
+		ps -P "$(cat "$WEBPIDFILE")" &> /dev/null && {
+			kill "$PID" && echo "Module Analytics Webserver Stopped" || echo "Module Analytics Webserver Could Not Be Stopped";
+
+			exit 0;
+		}
+	fi;
+
+	echo "Module Analytics Webserver Not Running";
+}
+
 case "${1:-}" in
 "start") start;;
 "stop") stop;;
+"webstart") webstart;;
+"webstop") webstop;;
 "logout") less +G "$LOGOUT";;
 "logerr") less +G "$LOGERR";;
+"weblogout") less +G "$WEBLOGOUT";;
+"weblogerr") less +G "$WEBLOGERR";;
 *)
 	cat <<HEREDOC
 Usage $0 start|stop|log|logout|logerr
