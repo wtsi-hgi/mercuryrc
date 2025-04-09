@@ -85,7 +85,11 @@ fullstop() {
 }
 
 building() {
-	ssh -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key ubuntu@"$(~/bin/wr_cloud_ips /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.wr-prod-mercury)" "$(sed -n -e '/^exit/,${//!p}' "$0")";
+	if [ -z "$(echo "$1" | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$")" ]; then
+		ssh -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key ubuntu@"$(~/bin/wr_cloud_ips /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.wr-prod-mercury)" "$(sed -n -e '/^exit/,${//!p}' "$0")";
+	else
+		ssh -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key -o ProxyCommand="ssh -W %h:%p -i /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.key ubuntu@$(~/bin/wr_cloud_ips /nfs/hgi/wr/openstack/.wr_production/cloud_resources.openstack.wr-prod-mercury)" ubuntu@"$1" "$(sed -n -e '/^exit/,${//!p}' "$0")";
+	fi;
 }
 
 buildlog() {
@@ -108,7 +112,7 @@ case "${1:-}" in
 "start") start;;
 "stop") stop;;
 "fullstop") fullstop;;
-"building") building;;
+"building") building "${2:-}";;
 "buildlog") buildlog;;
 "status") [ -e "$PIDFILE" ] && ps -P "$(cat "$PIDFILE")" &> /dev/null && echo "Running" || echo "Not Running";;
 "logout") less +G "$LOGOUT";;
@@ -123,7 +127,7 @@ Subcommand
   stop        Stop GSB.
   fullstop    Stop GSB and WR cloud deployment.
   status      Prints whether GSB is running or not.
-  building    Show build logs for active builds.
+  building    Show build logs for active builds. Optionally provide an IP address to a sub-builder.
   buildlog    Show the build log for an environment.
   clearburied Clear buried items in WR.
   logout      Show the standard output log (useful for debugging).
