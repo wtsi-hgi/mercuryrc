@@ -1,0 +1,2 @@
+export PATH="$PATH:/software/hgi/utils/ldapedit";
+export AUTHHOME="/hgi/home/mercury/";
