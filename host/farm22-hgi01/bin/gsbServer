@@ -63,7 +63,7 @@ stop() {
 	if [ -e "$PIDFILE" ]; then
 		declare PID="$(cat "$PIDFILE")";
 		ps -P "$PID" &> /dev/null && {
-			kill "$PID" && echo "GSB Stopped" || echo "GSB  could not be stopped";
+			kill "$PID" && echo "GSB Stopped" || echo "GSB could not be stopped";
 
 			exit 0;
 		}
