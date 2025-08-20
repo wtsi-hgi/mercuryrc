@@ -1,0 +1,1 @@
+export SINGULARITY_CACHEDIR="/nfs/hgi/.singularity"
