@@ -26,10 +26,10 @@ start() {
 	/software/hgi/installs/wr/wr status --deployment production &> /dev/null || {
 		echo "Starting WR in OpenStack...";
 
-		declare tmp="$(mktemp)";
+		export tmp="$(mktemp)";
 
 		cleanup() {
-			unlink "$tmp";
+			/usr/bin/unlink "$tmp";
 		}
 
 		trap cleanup EXIT;
