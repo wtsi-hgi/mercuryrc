@@ -104,7 +104,7 @@ case "${2:-}" in
 	fi;;
 "stop")
 	if isRunning "$pidFile"; then
-		kill "$pid" && "$1 stopped" || {
+		kill "$(cat "$pidFile")" && "$1 stopped" || {
 			echo "$1: failed to stop";
 
 			exit 1;
