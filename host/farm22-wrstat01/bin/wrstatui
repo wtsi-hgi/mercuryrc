@@ -7,7 +7,7 @@ declare WRSTAT_SUM="/nfs/wrstat/summarise"
 declare DAEMONIZE="/software/hgi/installs/daemonize/daemonize";
 declare NFS_SHARES="/nfs/wrstat/nfs_shares.txt";
 declare MOUNTS="/nfs/wrstat/mounts";
-declare OKTA=~/.okta.prod;
+declare OKTA="$WRSTAT_WEB/.okta.prod";
 declare ANALYTICS="/nfs/wrstat/db/analytics.db";
 declare -A PIDs=(
 	["analytics"]="$WRSTAT_WEB/analytics/pid"
@@ -22,14 +22,14 @@ declare -A LOGs=(
 	["watch"]="$WRSTAT_SUM/log"
 )
 declare -A ERRs=(
-	["analytics"]="$WRSTAT_WEB/daemon/err"
-	["server"]="$WRSTAT_WEB/analytics/err"
+	["analytics"]="$WRSTAT_WEB/analytics/err"
+	["server"]="$WRSTAT_WEB/daemon/err"
 	["syscalls"]="$WRSTAT_WEB/syscalls/err"
 	["watch"]="$WRSTAT_SUM/err"
 )
 declare -A ARGs=(
 	["analytics"]="-b :8081 -H https://wrstat.internal.sanger.ac.uk/ $ANALYTICS"
-	["server"]="-c $WRSTAT_WEB/cert.pem -k $WRSTAT_WEB/key.pem --logfile /dev/stdout --areas /nfs/wrstat/bom.areas --owners /nfs/wrstat/owners -b localhost:8080 --okta_url wrstat.internal.sanger.ac.uk --spyware $ANALYTICS -m $MOUNTS /nfs/wrstat/db"
+	["server"]="-c $WRSTAT_WEB/cert.pem -k $WRSTAT_WEB/key.pem --logfile ${LOGs["server"]} --areas /nfs/wrstat/bom.areas --owners /nfs/wrstat/owners -b localhost:8080 --okta_url wrstat.internal.sanger.ac.uk --spyware $ANALYTICS -m $MOUNTS /nfs/wrstat/db"
 	["syscalls"]="-b :8082 -r 60 /nfs/wrstat/lustre /nfs/wrstat/nfs"
 	["watch"]="-o /nfs/wrstat/db -q /nfs/wrstat/quotas -c /nfs/wrstat/basedir.config -m $MOUNTS /nfs/wrstat/lustre /nfs/wrstat/nfs"
 )
