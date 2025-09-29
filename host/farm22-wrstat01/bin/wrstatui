@@ -136,7 +136,7 @@ esac;
 
 case "${1:-}" in
 "server")
-	[ -x "$OKTA" ] && source "$OKTA";;
+	[ -f "$OKTA" ] && source "$OKTA";;
 "watch")
 	{
 		findmnt -ln --real -o target | tail -n +2;
