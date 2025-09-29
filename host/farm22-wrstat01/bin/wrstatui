@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -euo pipefail;
-
 declare GROUP="wrstat-share";
 declare EXE="/software/hgi/installs/wrstat/wrstat-ui";
 declare WRSTAT_WEB="/nfs/wrstat/web"
@@ -35,7 +33,6 @@ declare -A ARGs=(
 	["syscalls"]="-b :8082 -r 60 /nfs/wrstat/lustre /nfs/wrstat/nfs"
 	["watch"]="-o /nfs/wrstat/db -q /nfs/wrstat/quotas -c /nfs/wrstat/basedir.config -m $MOUNTS /nfs/wrstat/lustre /nfs/wrstat/nfs"
 )
-
 
 if [ -z "${GROUP:-}" ]; then :
 elif ! id -Gn | tr ' ' '\n' | grep -q "$GROUP"; then
