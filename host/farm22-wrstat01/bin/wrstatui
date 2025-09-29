@@ -1,0 +1,150 @@
+#!/bin/bash
+
+set -euo pipefail;
+
+declare GROUP="wrstat-share";
+declare EXE="/software/hgi/installs/wrstat/wrstat-ui";
+declare WRSTAT_WEB="/nfs/wrstat/web"
+declare WRSTAT_SUM="/nfs/wrstat/summarise"
+declare DAEMONIZE="/software/hgi/installs/daemonize/daemonize";
+declare NFS_SHARES="/nfs/wrstat/nfs_shares.txt";
+declare MOUNTS="/nfs/wrstat/mounts";
+declare OKTA=~/.okta.prod;
+declare ANALYTICS="/nfs/wrstat/db/analytics.db";
+declare -A PIDs=(
+	["analytics"]="$WRSTAT_WEB/analytics/pid"
+	["server"]="$WRSTAT_WEB/daemon/pid"
+	["syscalls"]="$WRSTAT_WEB/syscalls/pid"
+	["watch"]="$WRSTAT_SUM/pid"
+)
+declare -A LOGs=(
+	["analytics"]="$WRSTAT_WEB/analytics/log"
+	["server"]="$WRSTAT_WEB/daemon/log"
+	["syscalls"]="$WRSTAT_WEB/syscalls/log"
+	["watch"]="$WRSTAT_SUM/log"
+)
+declare -A ERRs=(
+	["analytics"]="$WRSTAT_WEB/daemon/err"
+	["server"]="$WRSTAT_WEB/analytics/err"
+	["syscalls"]="$WRSTAT_WEB/syscalls/err"
+	["watch"]="$WRSTAT_SUM/err"
+)
+declare -A ARGs=(
+	["analytics"]="-b :8081 -H https://wrstat.internal.sanger.ac.uk/ $ANALYTICS"
+	["server"]="-c $WRSTAT_WEB/cert.pem -k $WRSTAT_WEB/key.pem --logfile /dev/stdout --areas /nfs/wrstat/bom.areas --owners /nfs/wrstat/owners -b localhost:8080 --okta_url wrstat.internal.sanger.ac.uk --spyware $ANALYTICS -m $MOUNTS /nfs/wrstat/db"
+	["syscalls"]="-b :8082 -r 60 /nfs/wrstat/lustre /nfs/wrstat/nfs"
+	["watch"]="-o /nfs/wrstat/db -q /nfs/wrstat/quotas -c /nfs/wrstat/basedir.config -m $MOUNTS /nfs/wrstat/lustre /nfs/wrstat/nfs"
+)
+
+
+if [ -z "${GROUP:-}" ]; then :
+elif ! id -Gn | tr ' ' '\n' | grep -q "$GROUP"; then
+	echo "Not in required group ($GROUP)" >&2;
+
+	exit 1;
+elif [ "$(id -gn)" != "$GROUP" ]; then
+	sg "$GROUP" "${0@Q} ${*@Q}";
+
+	exit $?;
+fi;
+
+printHelp() {
+	if [ -n "${2:-}" ]; then
+		echo -e "$2\n";
+	fi;
+
+	cat <<-HEREDOC
+	WRStat-UI server utility.
+
+	Usage: $0 ${1:-analytics|server|syscalls|watch} start|stop|status|log|logerr
+	HEREDOC
+
+	if [ -n "${2:-}" ]; then
+		exit 1;
+	fi;
+
+	exit 0;
+}
+
+case "${1:-}" in
+"analytics"|"server"|"syscalls"|"watch") ;;
+"all")
+	shift;
+
+	for subcommand in ${!PIDs[@]}; do
+		"$0" "$subcommand" "$@";
+	done;
+
+	exit 0;;
+"-h"|"--help")
+	printHelp;;
+*)
+	printHelp "" "Unknown subcommand" >&2;;
+esac;
+
+declare pidFile="${PIDs[$1]}";
+
+isRunning() {
+	local pidFile="$1";
+
+	if [ -f "$pidFile" ]; then
+		declare pid="$(cat "$pidFile")";
+
+		if ps -P "$pid" &> /dev/null; then
+			return 0;
+		fi;
+	fi;
+
+	return 1;
+}
+
+case "${2:-}" in
+"start")
+	if isRunning "$pidFile"; then
+		echo "$1: already started";
+
+		exit 0;
+	fi;;
+"stop")
+	if isRunning "$pidFile"; then
+		kill "$pid" && "$1 stopped" || {
+			echo "$1: failed to stop";
+
+			exit 1;
+		}
+
+		exit 0;
+	fi;
+
+	echo "$1: not running";
+
+	exit 0;;
+"status")
+	if isRunning "$pidFile"; then
+		echo "$1: running";
+	else
+		echo "$1: not running";
+	fi;
+
+	exit 0;;
+"log")
+	less +G "${LOGs[$1]}";;
+"logerr")
+	less +G "${ERRs[$1]}";;
+"-h"|"--help")
+	printHelp "$1";;
+*)
+	printHelp "$1" "Unknown action: ${2:-}" >&2;
+esac;
+
+case "${1:-}" in
+"server")
+	[ -x "$OKTA" ] && source "$OKTA";;
+"watch")
+	{
+		findmnt -ln --real -o target | tail -n +2;
+		cat "$NFS_SHARES";
+	} | sed -e 's/^/"/' -e 's/$/"/' > "$MOUNTS";;
+esac;
+
+"$DAEMONIZE" -p "$pidFile" -a -e "${ERRs[$1]}" -o "${LOGs[$1]}" "$EXE" "$1" ${ARGs[$1]};
