@@ -3,7 +3,6 @@
 declare GROUP="wrstat-share";
 declare EXE="/software/hgi/installs/wrstat/wrstat-ui";
 declare WRSTAT_WEB="/nfs/wrstat/web"
-declare WRSTAT_SUM="/nfs/wrstat/summarise"
 declare DAEMONIZE="/software/hgi/installs/daemonize/daemonize";
 declare NFS_SHARES="/nfs/wrstat/nfs_shares.txt";
 declare MOUNTS="/nfs/wrstat/mounts";
@@ -13,19 +12,19 @@ declare -A PIDs=(
 	["analytics"]="$WRSTAT_WEB/analytics/pid"
 	["server"]="$WRSTAT_WEB/daemon/pid"
 	["syscalls"]="$WRSTAT_WEB/syscalls/pid"
-	["watch"]="$WRSTAT_SUM/pid"
+	["watch"]="$WRSTAT_WEB/watch/pid"
 )
 declare -A LOGs=(
 	["analytics"]="$WRSTAT_WEB/analytics/log"
 	["server"]="$WRSTAT_WEB/daemon/log"
 	["syscalls"]="$WRSTAT_WEB/syscalls/log"
-	["watch"]="$WRSTAT_SUM/log"
+	["watch"]="$WRSTAT_WEB/watch/log"
 )
 declare -A ERRs=(
 	["analytics"]="$WRSTAT_WEB/analytics/err"
 	["server"]="$WRSTAT_WEB/daemon/err"
 	["syscalls"]="$WRSTAT_WEB/syscalls/err"
-	["watch"]="$WRSTAT_SUM/err"
+	["watch"]="$WRSTAT_WEB/watch/err"
 )
 declare -A ARGs=(
 	["analytics"]="-b :8081 -H https://wrstat.internal.sanger.ac.uk/ $ANALYTICS"
@@ -104,7 +103,7 @@ case "${2:-}" in
 	fi;;
 "stop")
 	if isRunning "$pidFile"; then
-		kill "$(cat "$pidFile")" && "$1 stopped" || {
+		kill "$(cat "$pidFile")" && echo "$1 stopped" || {
 			echo "$1: failed to stop";
 
 			exit 1;
