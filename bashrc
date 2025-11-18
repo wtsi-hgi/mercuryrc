@@ -102,19 +102,4 @@ for _RC_DIR in \
 do _hgi_source "${_RC_DIR}"; done
 unset _RC_DIR
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/software/hgi/installs/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/software/hgi/installs/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/software/hgi/installs/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/software/hgi/installs/anaconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
 export WR_CONFIG_DIR=/nfs/hgi/wr/lsf
