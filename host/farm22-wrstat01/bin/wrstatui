@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export WR_CONFIG_DIR=/nfs/hgi/wr/lsf
 declare GROUP="wrstat-share";
 declare EXE="/software/hgi/installs/wrstat/wrstat-ui";
 declare WRSTAT_WEB="/nfs/wrstat/web"
