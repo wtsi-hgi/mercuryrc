@@ -31,7 +31,7 @@ declare -A ARGs=(
 	["analytics"]="-b :8081 -H https://wrstat.internal.sanger.ac.uk/ $ANALYTICS"
 	["server"]="-c $WRSTAT_WEB/cert.pem -k $WRSTAT_WEB/key.pem --logfile ${LOGs["server"]} --areas /nfs/wrstat/bom.areas --owners /nfs/wrstat/owners -b localhost:8080 --okta_url wrstat.internal.sanger.ac.uk --spyware $ANALYTICS -m $MOUNTS /nfs/wrstat/db"
 	["syscalls"]="-b :8082 -r 60 /nfs/wrstat/lustre /nfs/wrstat/nfs"
-	["watch"]="-o /nfs/wrstat/db -q /nfs/wrstat/quotas -c /nfs/wrstat/basedir.config -m $MOUNTS /nfs/wrstat/lustre /nfs/wrstat/nfs"
+	["watch"]="-o /nfs/wrstat/db -q /nfs/wrstat/quotas -c /nfs/wrstat/basedir.config -m $MOUNTS --group $GROUP /nfs/wrstat/lustre /nfs/wrstat/nfs"
 )
 
 if [ -z "${GROUP:-}" ]; then :
