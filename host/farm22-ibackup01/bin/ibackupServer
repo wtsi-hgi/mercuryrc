@@ -39,6 +39,6 @@ export IBACKUP_REMOTE_DB_BACKUP_PATH='/humgen/ibackup/db.bk';
 export IBACKUP_CONFIG='/software/hgi/installs/ibackup/.ibackup.config';
 export IRODS_ENVIRONMENT_FILE=/nfs/users/nfs_m/mercury/.irods/irods_environment.humgen.json;
 export PATH="/software/hgi/installs/ibackup:$PATH";
-/software/hgi/installs/daemonize/daemonize -p $BASE/pid -l $BASE/lock -e $BASE/err "$(realpath /software/hgi/installs/ibackup/ibackup)" server -k /nfs/hgi/ibackup/server/key.pem --logfile /nfs/hgi/ibackup/server/log -s ldap-ro.internal.sanger.ac.uk -l 'uid=%s,ou=people,dc=sanger,dc=ac,dc=uk' -r 6h --hardlinks_collection /humgen/ibackup/hardlinks_v2 --statter /software/hgi/installs/ibackup/statter /local/ibackup/production.db /nfs/hgi/ibackup/server/production.db.bk;
+/software/hgi/installs/daemonize/daemonize -p $BASE/pid -l $BASE/lock -e $BASE/err "$(realpath /software/hgi/installs/ibackup/ibackup)" server -k /nfs/hgi/ibackup/server/key.pem --logfile /nfs/hgi/ibackup/server/log -s ldap-ro.internal.sanger.ac.uk -l 'uid=%s,ou=people,dc=sanger,dc=ac,dc=uk' -r 6h --hardlinks_collection /humgen/ibackup/hardlinks_v2 --statter /software/hgi/installs/ibackup/statter --hung_debug_timeout 20m --queues_avoid cpu-interactive --replica_logging  /local/ibackup/production.db /nfs/hgi/ibackup/server/production.db.bk;
 
 echo "...Done";
