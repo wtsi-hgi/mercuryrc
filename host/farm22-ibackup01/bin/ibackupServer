@@ -23,7 +23,7 @@ declare -A ARGs=(
 
 declare SLACK_CREDENTIALS="/nfs/hgi/ibackup/slack-credentials.humgen";
 
-#[ -f "$SLACK_CREDENTIALS" ] && . "$SLACK_CREDENTIALS";
+[ -f "$SLACK_CREDENTIALS" ] && . "$SLACK_CREDENTIALS";
 
 export WR_CONFIG_DIR=/nfs/hgi/wr/lsf;
 export IBACKUP_SERVER_URL='farm22-ibackup01.internal.sanger.ac.uk:4678';
