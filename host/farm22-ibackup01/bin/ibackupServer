@@ -119,9 +119,13 @@ case "${2:-}" in
 
 	exit 0;;
 "log")
-	less +G "${LOGs[$1]}";;
+	less +G "${LOGs[$1]}";
+
+	exit 0;;
 "logerr")
-	less +G "${ERRs[$1]}";;
+	less +G "${ERRs[$1]}";
+
+	exit 0;;
 "-h"|"--help")
 	printHelp "$1";;
 *)
