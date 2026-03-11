@@ -17,7 +17,7 @@ declare -A ERRs=(
 	["watchfofns"]="$BASE/watchfofns/err"
 )
 declare -A ARGs=(
-	["server"]="-k $BASE/server/key.pem --logfile $BASE/server/log -s ldap-ro.internal.sanger.ac.uk -l 'uid=%s,ou=people,dc=sanger,dc=ac,dc=uk' -r 6h --hardlinks_collection /humgen/ibackup/hardlinks_v2 --statter /software/hgi/installs/ibackup/statter --hung_debug_timeout 20m --queues_avoid cpu-interactive --replica_logging  /local/ibackup/production.db $BASE/server/production.db.bk"
+	["server"]="-k $BASE/server/key.pem --logfile $BASE/server/log -s ldap-ro.internal.sanger.ac.uk -l uid=%s,ou=people,dc=sanger,dc=ac,dc=uk -r 6h --hardlinks_collection /humgen/ibackup/hardlinks_v2 --statter /software/hgi/installs/ibackup/statter --hung_debug_timeout 20m --queues_avoid cpu-interactive --replica_logging  /local/ibackup/production.db $BASE/server/production.db.bk"
 	["watchfofns"]="--dir /nfs/hgi/ibackup/fofns"
 )
 
