@@ -30,7 +30,7 @@ checkMountRun() {
 	declare mount="$2";
 	declare grace="$3";
 
-	if [ -z "$(find "$dir" -maxdepth 1 -type d -name "*${mount//\//／}" -mtime -$(( grace - 1 )) -print)" ]; then
+	if [ -z "$(find "$dir" -maxdepth 1 -type d -name "*${mount//\//／}" -mtime -$(( grace - 1 )) -print)" -a -n "$(find "$dir" -maxdepth 1 -type d -name "*${mount//\//／}" -print)" ]; then
 		echo "Warning: No wrstat output has been generated for mount $mount in $dir within the last $grace_days days.";
 		echo;
 	fi;
