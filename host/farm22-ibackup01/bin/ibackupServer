@@ -26,6 +26,7 @@ declare SLACK_CREDENTIALS="/nfs/hgi/ibackup/slack-credentials.humgen";
 [ -f "$SLACK_CREDENTIALS" ] && . "$SLACK_CREDENTIALS";
 
 export WR_CONFIG_DIR=/nfs/hgi/wr/lsf;
+export WR_MANAGERQUEUESAVOID="interactive,gpu,imaging,transfer,oversubscribed,software-deploy,inference,checkpoint,system";
 export IBACKUP_SERVER_URL='farm22-ibackup01.internal.sanger.ac.uk:4678';
 export IBACKUP_SERVER_CERT='/nfs/hgi/ibackup/server/cert.pem';
 export no_proxy=localhost,127.0.0.1,.internal.sanger.ac.uk;
